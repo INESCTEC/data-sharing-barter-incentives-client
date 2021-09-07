@@ -1,0 +1,4 @@
+requests
+python-dotenv
+click
+loguru
