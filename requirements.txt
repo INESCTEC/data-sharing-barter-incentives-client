@@ -2,3 +2,6 @@ requests
 python-dotenv
 click
 loguru
+pandas
+numpy
+scipy

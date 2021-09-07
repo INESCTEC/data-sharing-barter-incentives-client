@@ -107,19 +107,11 @@ class ClientController(RequestController):
                   bid_price,
                   max_payment,
                   gain_func):
-        payload = {
-            "market_session_id": market_session_id,
-            "bid_price": bid_price,
-            "max_payment": max_payment,
-            "gain_func": gain_func
-        }
-        response = self.__request_template(
-            endpoint_cls=Endpoint(market_bid.POST, market_bid.uri),
-            log_msg=f"Posting bid for market session ID {market_session_id}",
-            data=payload,
-            exception_cls=MarketBidException
-        )
-        return response['data']
+        # Todo: to implement after method created valorem server.
+        # Will send a JSON
+        # Should place a bid considering an add provided by valorem
+        # (build other method to get that address)
+        pass
 
     def send_measurements(self, data):
         # Todo: to implement after method created valorem server.
