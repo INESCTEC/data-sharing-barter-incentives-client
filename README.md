@@ -1,11 +1,12 @@
 # valorem-client-python
 
-VALOREM project python client
+Python client for VALOREM project 
 
 **Warning: This package should be used exclusively for tests / debug purposes.**
 
 ## Install:
-docker-compose build
+
+    > docker-compose build
 
 ## IOTA Wallet CLI:
 
