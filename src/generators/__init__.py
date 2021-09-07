@@ -1,1 +1,1 @@
-from .MeasurementsGenerator import MeasurementsGenerator
+from .data_generators import MeasurementsGenerator

@@ -4,8 +4,8 @@
 
 
 import os
-import json
 import click
+import datetime as dt
 
 from loguru import logger
 
@@ -41,9 +41,22 @@ logger.info("-" * 70)
               help='User last name.',
               required=True,
               type=str)
-def register(email, password, first_name, last_name):
+@click.option('--role',
+              help='User role.',
+              required=True,
+              type=click.Choice(['buyer', 'seller'], case_sensitive=True))
+def register(email, password, first_name, last_name, role):
+    role_dict = {"buyer": [1, 2], "seller": [2]}
     logger.info(f'Registering user: {email}')
-    # todo: reutilizar codigo.
+    controller = ClientController()
+    controller.register(
+        email=email,
+        password=password,
+        password_conf=password,
+        first_name=first_name,
+        last_name=last_name,
+        role=role_dict[role]
+    )
 
 
 @click.command()
@@ -69,6 +82,11 @@ def register(email, password, first_name, last_name):
               default='mse',
               type=str)
 def place_bid(email, password, bid_price, max_payment, gain_func):
+    # initialize REST controller
+    controller = ClientController()
+    # login to market REST:
+    controller.login(email, password)
+    # Bid placement:
     logger.info(f'Placing bid for user: {email}')
     # todo: place bid
     #  1) get valorem address
@@ -86,8 +104,12 @@ def place_bid(email, password, bid_price, max_payment, gain_func):
               required=True,
               type=str)
 def get_forecasts(email, password):
-    # todo: fetch forecasts from VALOREM platform and store it on user DB
-    pass
+    # initialize REST controller
+    controller = ClientController()
+    # login to market REST:
+    controller.login(email, password)
+    # Bid placement:
+    # todo: fetch forecasts from VALOREM REST and store it on user DB
 
 
 @click.command()
@@ -100,9 +122,18 @@ def get_forecasts(email, password):
               required=True,
               type=str)
 def send_measurements(email, password):
-    # todo: Creates mock measurements data & sends to VALOREM platform
-
-    pass
+    # initialize REST controller
+    controller = ClientController()
+    # login to market REST:
+    controller.login(email, password)
+    # Measurements generation:
+    date_now = dt.datetime.utcnow()
+    mg = MeasurementsGenerator()
+    measurements = mg.generate_mock_data_sin(
+        start_date=date_now - dt.timedelta(days=2),
+        end_date=date_now,
+    )
+    # todo: convert to JSON & send measurements to VALOREM REST
 
 
 @click.group()
