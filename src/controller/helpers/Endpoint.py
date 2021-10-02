@@ -10,12 +10,12 @@ http_methods = "GET", "POST", "PUT", "DELETE",
 # Authentication
 login = endpoint(*http_methods, "/api/token/login")
 register = endpoint(*http_methods, "/api/user/register")
+wallet_address = endpoint(*http_methods, "/api/user/wallet-address")
 
 # Market endpoints
 market_bid = endpoint(*http_methods, "/api/market/bid")
-
-# Wallet endpoints:
-wallet_withdraw = endpoint(*http_methods, "/api/wallet/withdraw")
+market_session = endpoint(*http_methods, "/api/market/session")
+market_wallet_address = endpoint(*http_methods, "/api/market/wallet-address")
 
 
 @dataclass(frozen=True)

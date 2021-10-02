@@ -2,9 +2,9 @@ from time import time
 from loguru import logger
 from http import HTTPStatus
 
-from .helpers.Endpoint import *
-from .RequestController import RequestController
-from .exception.APIException import *
+from src.controller.helpers.Endpoint import *
+from src.controller.RequestController import RequestController
+from src.controller.exception.APIException import *
 
 
 class ClientController(RequestController):
@@ -70,6 +70,18 @@ class ClientController(RequestController):
             logger.error(log_msg + f"\n{rsp.json()}")
             raise RegisterException(message=log_msg, errors=rsp.json())
 
+    def register_wallet_address(self, address):
+        payload = {
+            "wallet_address": address,
+        }
+        response = self.__request_template(
+            endpoint_cls=Endpoint(wallet_address.POST, wallet_address.uri),
+            log_msg=f"Registering wallet address: {address}",
+            data=payload,
+            exception_cls=MarketAccountException
+        )
+        return response['data']
+
     def login(self, email: str, password: str):
         t0 = time()
         log_ = f"Logging in user {email}"
@@ -89,29 +101,59 @@ class ClientController(RequestController):
             logger.error(log_msg + f"\n{rsp.json()}")
             raise LoginException(message=log_msg, errors=rsp.json())
 
-    def create_wallet_withdraw_request(self, to_address: str, amount: int):
-        payload = {
-            "address": to_address,
-            "amount": amount,
-        }
+    def get_market_wallet_address(self):
         response = self.__request_template(
-            endpoint_cls=Endpoint(wallet_withdraw.POST, wallet_withdraw.uri),
-            log_msg=f"Withdrawing {amount} tokens to address {to_address}",
-            data=payload,
-            exception_cls=WalletWithdrawException
+            endpoint_cls=Endpoint(market_wallet_address.GET,
+                                  market_wallet_address.uri),
+            log_msg=f"Getting market wallet address",
+            exception_cls=MarketSessionException
         )
         return response['data']
 
+    def list_last_session(self, status: str):
+        params = {"status": status}
+        response = self.__request_template(
+            endpoint_cls=Endpoint(market_session.GET, market_session.uri),
+            log_msg=f"Getting last '{status}' market session",
+            params=params,
+            exception_cls=MarketSessionException
+        )
+        # Get sessions data - check if there are open sessions:
+        sessions = response['data']
+        if len(sessions) > 0:
+            sessions = sessions[-1]
+            return sessions
+        elif len(sessions) == 0:
+            log_msg = f"No market sessions with the status: {status}"
+            logger.warning(log_msg)
+            raise NoMarketSessionException(message=log_msg,
+                                           errors=response)
+
     def place_bid(self,
-                  market_session_id: int,
+                  session_id: int,
                   bid_price,
                   max_payment,
-                  gain_func):
+                  gain_func,
+                  tangle_msg_id):
+
         # Todo: to implement after method created valorem server.
         # Will send a JSON
         # Should place a bid considering an add provided by valorem
         # (build other method to get that address)
-        pass
+        payload = {
+            "market_session": session_id,
+            "bid_price": bid_price,
+            "max_payment": max_payment,
+            "gain_func": gain_func,
+            "tangle_msg_id": tangle_msg_id
+        }
+        response = self.__request_template(
+            endpoint_cls=Endpoint(market_bid.POST, market_bid.uri),
+            log_msg=f"Posting bid for market session ID: {session_id}",
+            data=payload,
+            exception_cls=MarketBidException
+        )
+        return response['data']
 
     def send_measurements(self, data):
         # Todo: to implement after method created valorem server.

@@ -3,8 +3,7 @@ import iota_wallet as iw
 
 from .helpers.wallet_helper import transaction_report
 
-NODE_URL = os.environ["NODE_URL"]
-STRONG_WALLET_KEY = os.environ["STRONG_WALLET_KEY"]
+NODE_URL = os.environ["IOTA_NODE_URL"]
 
 
 class WalletController:
@@ -12,9 +11,9 @@ class WalletController:
     wallet_location = os.path.join("files", "wallet-cli-db")
     local_pow = False
 
-    def __init__(self, email):
-        print("Connecting to Wallet ...")
+    def __init__(self, email, password):
         self.email = email
+        self.password = password
         self.account_manager = None
         self.wallet_location = os.path.join("files",
                                             "wallet-cli-db",
@@ -46,7 +45,7 @@ class WalletController:
             storage_path=self.wallet_location,
             allow_create_multiple_empty_accounts=True
         )
-        self.account_manager.set_stronghold_password(STRONG_WALLET_KEY)
+        self.account_manager.set_stronghold_password(self.password)
         return self
 
     def store_wallet_mnemonic(self, mnemonic):

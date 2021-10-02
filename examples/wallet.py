@@ -1,6 +1,6 @@
 # -- For debug purposes. Not necessary when using docker containers
-# from dotenv import load_dotenv
-# load_dotenv(".env")
+from dotenv import load_dotenv
+load_dotenv(".env")
 
 
 import os

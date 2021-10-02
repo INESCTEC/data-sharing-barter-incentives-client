@@ -2,10 +2,11 @@ import os
 import requests
 
 from time import sleep
+from loguru import logger
 
 
 class FaucetController:
-    BASE_URL = os.environ["FAUCET_URL"]
+    BASE_URL = os.environ["IOTA_FAUCET_URL"]
 
     def __init__(self):
         self.current_time = 0
@@ -14,13 +15,22 @@ class FaucetController:
         n_retries = 0
         response_msg = ""
         while n_retries <= max_retries:
+            # try approach for old testnet
+            logger.info("Trying old address ...")
             r = requests.get(self.BASE_URL + "/api", params={'address': address})
+            logger.info(r.status_code)
+            if r.status_code == 404:
+                logger.info("Trying new address ...")
+                # approach for new testnet (if old does compute)
+                r = requests.post(self.BASE_URL, json={'address': address})
+                logger.info(r.status_code)
+
             status_code = r.status_code
             response_msg = r.text
-            if status_code != 200:
-                print("Failed to request. Details:")
-                print(status_code, response_msg)
-                print(f"Retrying ... {n_retries}/{max_retries}")
+            if status_code not in [200, 202]:
+                logger.warning("Failed to request. Details:")
+                logger.warning(status_code, response_msg)
+                logger.warning(f"Retrying ... {n_retries}/{max_retries}")
                 sleep(seconds_between_retries)
                 n_retries += 1
             else:
