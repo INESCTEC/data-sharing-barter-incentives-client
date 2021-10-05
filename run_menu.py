@@ -1,6 +1,5 @@
 import os
 
-from pprint import pprint
 from loguru import logger
 from dotenv import load_dotenv
 
@@ -117,6 +116,7 @@ def wallet_menu():
         print("1  - Get wallet addresses")
         print("2  - Get wallet balances")
         print("3  - Transfer users wallet balances to address")
+        print("4  - Request tokens from IOTA faucet")
         _sep()
         print("9 - Return to previous menu.")
         print("0 - Exit")
@@ -129,17 +129,19 @@ def wallet_menu():
             except Exception as ex:
                 logger.exception(repr(ex))
         elif choice == "2":
-            # Approve buyers bids:
             try:
                 ag.get_wallet_balances()
             except Exception as ex:
                 logger.exception(repr(ex))
         elif choice == "3":
-            # Close market session (no more bids):
             try:
                 out_address = input("Enter output address: ")
-                # -- initialize WALLET controller:
                 ag.transfer_balance_to_address(address=out_address)
+            except Exception as ex:
+                logger.exception(repr(ex))
+        elif choice == "4":
+            try:
+                ag.request_tokens()
             except Exception as ex:
                 logger.exception(repr(ex))
         elif choice == "9":
