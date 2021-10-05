@@ -8,14 +8,14 @@ NODE_URL = os.environ["IOTA_NODE_URL"]
 
 class WalletController:
     nodes = [{"url": NODE_URL, "auth": None, "disabled": False}]
-    wallet_location = os.path.join("files", "wallet-cli-db")
+    USERS_FILE_DIR = os.environ["USERS_FILE_DIR"]
     local_pow = False
 
     def __init__(self, email, password):
         self.email = email
         self.password = password
         self.account_manager = None
-        self.wallet_location = os.path.join("files",
+        self.wallet_location = os.path.join(self.USERS_FILE_DIR,
                                             "wallet-cli-db",
                                             self.email)
         self.client_options = {

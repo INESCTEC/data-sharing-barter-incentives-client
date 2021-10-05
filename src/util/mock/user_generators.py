@@ -1,7 +1,7 @@
 
 
 def generate_users(nr_users):
-    names = [f"bob_{x}" for x in range(nr_users)]
+    names = [f"bob{x}" for x in range(nr_users)]
     passwords = ["123456" for _ in range(nr_users)]
     agent_info_list = []
     for name, password in zip(names, passwords):
