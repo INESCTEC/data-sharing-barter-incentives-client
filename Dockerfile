@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y git build-essential curl libudev-dev cl
 
 # install rust for python bindings
 RUN git clone https://github.com/iotaledger/wallet.rs.git
+RUN git clone https://github.com/iotaledger/iota.rs.git
 RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
 
 ENV PATH="/root/.cargo/bin:${PATH}"
@@ -14,6 +15,10 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 RUN rustup target add x86_64-unknown-linux-musl
 RUN pip install maturin
 RUN cd wallet.rs/bindings/python/native && maturin build --manylinux off
+RUN cd iota.rs/bindings/python/native && maturin build --manylinux off
+
+# RUN cd wallet.rs/bindings/python/native && cargo build --release
+# RUN cd iota.rs/bindings/python/native && cargo build --release
 
 
 # Step 2 Build Final version

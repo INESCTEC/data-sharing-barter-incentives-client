@@ -59,8 +59,9 @@ def installation_menu():
     choice = input("Proceed? (Y/n)")
     if choice.lower() == "y":
         nr_users = int(input("Define number of users to create: "))
+        name_prefix = input("Define prefix of user names to use: ")
         ag = AgentManager()
-        ag.create_user_wallets(nr_users=nr_users)
+        ag.create_user_wallets(nr_users=nr_users, name_prefix=name_prefix)
 
     input("Press any key to continue.")
     return

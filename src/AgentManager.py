@@ -24,8 +24,8 @@ class AgentManager:
             self.wallet_user_list = json.load(outfile)
         return self.wallet_user_list
 
-    def create_user_wallets(self, nr_users):
-        user_list = generate_users(nr_users=nr_users)
+    def create_user_wallets(self, nr_users, name_prefix):
+        user_list = generate_users(nr_users=nr_users, name_prefix=name_prefix)
         wallet_user_list = []
         for user in user_list:
             email = user["email"]
