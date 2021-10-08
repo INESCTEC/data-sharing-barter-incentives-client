@@ -16,6 +16,7 @@ wallet_address = endpoint(*http_methods, "/api/user/wallet-address")
 market_bid = endpoint(*http_methods, "/api/market/bid")
 market_session = endpoint(*http_methods, "/api/market/session")
 market_wallet_address = endpoint(*http_methods, "/api/market/wallet-address")
+market_balance = endpoint(*http_methods, "/api/market/balance")
 
 
 @dataclass(frozen=True)

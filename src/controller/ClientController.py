@@ -110,6 +110,15 @@ class ClientController(RequestController):
         )
         return response['data']
 
+    def get_market_balance(self):
+        response = self.__request_template(
+            endpoint_cls=Endpoint(market_balance.GET,
+                                  market_balance.uri),
+            log_msg=f"Getting market account balance",
+            exception_cls=MarketSessionException
+        )
+        return response['data']
+
     def list_last_session(self, status: str):
         params = {"status": status}
         response = self.__request_template(

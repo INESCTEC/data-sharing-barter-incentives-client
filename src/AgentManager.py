@@ -1,6 +1,7 @@
 import os
 import json
 
+from time import sleep
 from loguru import logger
 
 from src.util.mock.user_generators import generate_users
@@ -127,7 +128,44 @@ class AgentManager:
 
         return registered_users
 
-    def place_bids(self, max_payment, bid_price):
+    def list_current_open_session(self):
+        # Initialize API controller:
+        controller = ClientController()
+        user = self.wallet_user_list[0]
+        try:
+            # -- login to market REST:
+            controller.login(user['email'], user['password'])
+            # -- Get current last active session (status='closed'):
+            session_data = controller.list_last_session(status='open')
+            logger.info(json.dumps(session_data, indent=2))
+        except MarketSessionException:
+            logger.error("No market sessions available.")
+        except Exception:
+            logger.exception(f"Failed!")
+
+        return
+
+    def list_market_balance(self):
+        # Initialize API controller:
+        controller = ClientController()
+
+        for user in self.wallet_user_list:
+            logger.info(f"Getting balance for user {user['email']}")
+            email = user["email"]
+            password = user["password"]
+            try:
+                # -- login to market REST:
+                controller.login(email, password)
+                balance = controller.get_market_balance()
+                logger.info(json.dumps(balance, indent=2))
+                logger.info(f"Getting balance for user {user['email']} ... Ok!")
+            except MarketSessionException:
+                logger.error("Failed to get market balance.")
+            except Exception:
+                logger.exception(f"Failed!")
+        return
+
+    def place_bids(self):
         # Initialize API controller:
         controller = ClientController()
 
@@ -135,9 +173,17 @@ class AgentManager:
             logger.info(f"Placing bid for user: {user['email']}")
             email = user["email"]
             password = user["password"]
+            sleep(0.5)
+            while True:
+                max_payment = int(input("Define max_payment: "))
+                bid_price = int(input("Define bid_price: "))
+                if max_payment < 1000000:
+                    logger.error("A minimum payment of 1Mi (1000000 IOTA) is necessary! Try again.")
+                else:
+                    break
             try:
                 # -- login to market REST:
-                controller.login(user['email'], user['password'])
+                controller.login(email, password)
                 # -- Get market wallet address:
                 market_wallet_address = controller.get_market_wallet_address()
                 market_wallet_address = market_wallet_address["wallet_address"]
@@ -173,8 +219,7 @@ class AgentManager:
 
     def transfer_balance_to_address(self, address):
         for user in self.wallet_user_list:
-            logger.info(
-                f"Transferring user {user['email']} balance to firefly")
+            logger.info(f"Transferring user {user['email']} balance to firefly")
             email = user["email"]
             password = user["password"]
             try:

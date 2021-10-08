@@ -75,7 +75,9 @@ def market_menu():
         _clear_console()
         print("     Market OPS MENU")
         print("1  - Register users in market platform")
-        print("2  - Place market bids")
+        print("2  - List open market session")
+        print("3  - Place market bids")
+        print("4  - Get current market balance")
         _sep()
         print("9 - Return to previous menu.")
         print("0 - Exit")
@@ -90,11 +92,19 @@ def market_menu():
                 logger.exception("Failed to register users")
         if choice == "2":
             try:
+                # List current open session:
+                ag.list_current_open_session()
+            except Exception:
+                logger.exception("Failed list open session")
+        if choice == "3":
+            try:
                 # Place users bids:
-                max_payment = int(input("Define max_payment: "))
-                bid_price = int(input("Define bid_price: "))
-                ag.place_bids(max_payment=max_payment,
-                              bid_price=bid_price)
+                ag.place_bids()
+            except Exception:
+                logger.exception("Failed to register users")
+        if choice == "4":
+            try:
+                ag.list_market_balance()
             except Exception:
                 logger.exception("Failed to register users")
         elif choice == "9":
