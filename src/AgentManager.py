@@ -5,6 +5,7 @@ from loguru import logger
 
 from src.util.mock.user_generators import generate_users
 from src.controller import FaucetController, WalletController, ClientController
+from src.controller.exception.APIException import *
 
 
 class AgentManager:
@@ -139,6 +140,7 @@ class AgentManager:
                 controller.login(user['email'], user['password'])
                 # -- Get market wallet address:
                 market_wallet_address = controller.get_market_wallet_address()
+                market_wallet_address = market_wallet_address["wallet_address"]
                 # -- Get current last active session (status='closed'):
                 session_data = controller.list_last_session(status='open')
                 # Get session_id & fetch data for that session:
@@ -162,6 +164,8 @@ class AgentManager:
                 )
                 logger.info(response)
                 logger.info(f"Placing bid for user: {user['email']} ... Ok!")
+            except MarketSessionException:
+                logger.error("There is no market wallet address to use.")
             except Exception:
                 logger.exception(f"Placing bid for user: {user['email']} "
                                  f"... Failed!")
