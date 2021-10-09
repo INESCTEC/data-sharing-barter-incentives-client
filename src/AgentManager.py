@@ -193,6 +193,14 @@ class AgentManager:
                 session_data = controller.list_last_session(status='open')
                 # Get session_id & fetch data for that session:
                 active_session_id = session_data["market_session_id"]
+                # Check if there are already bids for current session:
+                current_bids = controller.get_current_session_bids(
+                    session_id=active_session_id
+                )
+                if len(current_bids) > 0:
+                    logger.error(f"User {user['email']} already has a "
+                                 f"market bid for the current session.")
+                    continue
                 # --------------
                 # -- initialize WALLET controller:
                 wallet = WalletController(email=email,
@@ -214,10 +222,10 @@ class AgentManager:
                 logger.info(f"Placing bid for user: {user['email']} ... Ok!")
             except MarketSessionException:
                 logger.error("There is no market wallet address to use.")
-            except Exception:
-                logger.exception(f"Placing bid for user: {user['email']} "
+                logger.error(f"Placing bid for user: {user['email']} "
                                  f"... Failed!")
-        return
+            except Exception:
+                logger.exception(f"Unexpected error!")
 
     def transfer_balance_to_address(self, address):
         for user in self.wallet_user_list:

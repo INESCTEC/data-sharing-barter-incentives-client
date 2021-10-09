@@ -138,6 +138,23 @@ class ClientController(RequestController):
             raise NoMarketSessionException(message=log_msg,
                                            errors=response)
 
+    def get_current_session_bids(self, session_id: int):
+
+        # Todo: to implement after method created valorem server.
+        # Will send a JSON
+        # Should place a bid considering an add provided by valorem
+        # (build other method to get that address)
+        params = {
+            "market_session": session_id,
+        }
+        response = self.__request_template(
+            endpoint_cls=Endpoint(market_bid.GET, market_bid.uri),
+            log_msg=f"Getting bids for market session ID: {session_id}",
+            params=params,
+            exception_cls=MarketBidException
+        )
+        return response['data']
+
     def place_bid(self,
                   session_id: int,
                   bid_price,
