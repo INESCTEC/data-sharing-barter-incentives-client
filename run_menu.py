@@ -91,11 +91,8 @@ def market_menu():
             except Exception:
                 logger.exception("Failed to register users")
         if choice == "2":
-            try:
-                # List current open session:
-                ag.list_current_open_session()
-            except Exception:
-                logger.exception("Failed list open session")
+            # List current open session:
+            ag.list_current_open_session()
         if choice == "3":
             try:
                 # Place users bids:

@@ -122,9 +122,12 @@ class AgentManager:
                 controller.register_wallet_address(user["wallet_address"])
                 registered_users.append(user)
                 logger.info(f"Registering user: {user['email']} ... Ok!")
-            except Exception:
-                logger.exception(
-                    f"Registering user: {user['email']} ... Failed!")
+            except LoginException:
+                logger.error(f"Unable to login into platform")
+                logger.error(f"Registering user {user['email']} ... Failed!")
+            except RegisterException:
+                logger.error(f"Unable to register user into platform")
+                logger.error(f"Registering user {user['email']} ... Failed!")
 
         return registered_users
 
@@ -139,11 +142,11 @@ class AgentManager:
             session_data = controller.list_last_session(status='open')
             logger.info(json.dumps(session_data, indent=2))
         except MarketSessionException:
-            logger.error("No market sessions available.")
-        except Exception:
-            logger.exception(f"Failed!")
-
-        return
+            logger.error("Unable to get information from market session.")
+        except NoMarketSessionException:
+            logger.error("There are no market sessions in 'open' state.")
+        except BaseException:
+            logger.exception("Unexpected error!")
 
     def list_market_balance(self):
         # Initialize API controller:
@@ -161,9 +164,8 @@ class AgentManager:
                 logger.info(f"Getting balance for user {user['email']} ... Ok!")
             except MarketSessionException:
                 logger.error("Failed to get market balance.")
-            except Exception:
-                logger.exception(f"Failed!")
-        return
+            except BaseException:
+                logger.exception("Unexpected error!")
 
     def place_bids(self):
         # Initialize API controller:

@@ -78,7 +78,7 @@ class ClientController(RequestController):
             endpoint_cls=Endpoint(wallet_address.POST, wallet_address.uri),
             log_msg=f"Registering wallet address: {address}",
             data=payload,
-            exception_cls=MarketAccountException
+            exception_cls=RegisterException
         )
         return response['data']
 
