@@ -66,7 +66,6 @@ class AgentManager:
             except Exception:
                 logger.exception(
                     f'Failed to retrieve balance for user {email}!')
-        return
 
     def get_wallet_addresses(self):
         for user in self.wallet_user_list:
@@ -79,9 +78,7 @@ class AgentManager:
                 address = wallet.get_address()["address"]["inner"]
                 logger.info(f'User {email} address is {address}')
             except Exception:
-                logger.exception(
-                    f'Failed to retrieve address for user {email}!')
-        return
+                logger.exception(f'Failed to retrieve address for user {email}!')
 
     def request_tokens(self):
         for user in self.wallet_user_list:
@@ -167,6 +164,33 @@ class AgentManager:
             except BaseException:
                 logger.exception("Unexpected error!")
 
+    def list_market_bids(self, open_session_only=False):
+        # Initialize API controller:
+        controller = ClientController()
+
+        for user in self.wallet_user_list:
+            logger.info(f"Getting balance for user {user['email']}")
+            email = user["email"]
+            password = user["password"]
+            active_session_id = None
+            try:
+                # -- login to market REST:
+                controller.login(email, password)
+
+                if open_session_only:
+                    # -- Get current last active session (status='closed'):
+                    session_data = controller.list_last_session(status='open')
+                    # Get session_id & fetch data for that session:
+                    active_session_id = session_data["market_session_id"]
+
+                balance = controller.get_current_session_bids(session_id=active_session_id)
+                logger.info(json.dumps(balance, indent=2))
+                logger.info(f"Getting balance for user {user['email']} ... Ok!")
+            except MarketBidException:
+                logger.error("Failed to get market bids.")
+            except BaseException:
+                logger.exception("Unexpected error!")
+
     def place_bids(self):
         # Initialize API controller:
         controller = ClientController()
@@ -220,10 +244,12 @@ class AgentManager:
                 )
                 logger.info(response)
                 logger.info(f"Placing bid for user: {user['email']} ... Ok!")
+            except LoginException:
+                logger.error("Unable to login into the market platform.")
+            except MarketBidException:
+                logger.error("Failed to check for existing market bids.")
             except MarketSessionException:
                 logger.error("There is no market wallet address to use.")
-                logger.error(f"Placing bid for user: {user['email']} "
-                                 f"... Failed!")
             except Exception:
                 logger.exception(f"Unexpected error!")
 
@@ -245,4 +271,3 @@ class AgentManager:
             except Exception:
                 logger.exception(f"Placing bid for user: {user['email']} "
                                  f"... Failed!")
-        return

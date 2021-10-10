@@ -138,15 +138,11 @@ class ClientController(RequestController):
             raise NoMarketSessionException(message=log_msg,
                                            errors=response)
 
-    def get_current_session_bids(self, session_id: int):
+    def get_current_session_bids(self, session_id: int = None):
+        params = {}
+        if session_id is not None:
+            params["market_session"] = session_id,
 
-        # Todo: to implement after method created valorem server.
-        # Will send a JSON
-        # Should place a bid considering an add provided by valorem
-        # (build other method to get that address)
-        params = {
-            "market_session": session_id,
-        }
         response = self.__request_template(
             endpoint_cls=Endpoint(market_bid.GET, market_bid.uri),
             log_msg=f"Getting bids for market session ID: {session_id}",
@@ -161,11 +157,6 @@ class ClientController(RequestController):
                   max_payment,
                   gain_func,
                   tangle_msg_id):
-
-        # Todo: to implement after method created valorem server.
-        # Will send a JSON
-        # Should place a bid considering an add provided by valorem
-        # (build other method to get that address)
         payload = {
             "market_session": session_id,
             "bid_price": bid_price,

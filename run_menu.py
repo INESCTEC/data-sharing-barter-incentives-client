@@ -25,7 +25,7 @@ def main():
 
         if choice == "1":
             market_menu()
-        if choice == "2":
+        elif choice == "2":
             wallet_menu()
         elif choice == "0":
             exit("Exit.")
@@ -64,7 +64,6 @@ def installation_menu():
         ag.create_user_wallets(nr_users=nr_users, name_prefix=name_prefix)
 
     input("Press any key to continue.")
-    return
 
 
 def market_menu():
@@ -77,7 +76,9 @@ def market_menu():
         print("1  - Register users in market platform")
         print("2  - List open market session")
         print("3  - Place market bids")
-        print("4  - Get current market balance")
+        print("4  - List bids for current 'open' session")
+        print("5  - Get current market balance")
+        print("6  - List market bid history")
         _sep()
         print("9 - Return to previous menu.")
         print("0 - Exit")
@@ -85,25 +86,23 @@ def market_menu():
         choice = input("Please make a choice: ")
 
         if choice == "1":
-            try:
-                # Register users:
-                ag.register_users()
-            except Exception:
-                logger.exception("Failed to register users")
-        if choice == "2":
+            # Register users:
+            ag.register_users()
+        elif choice == "2":
             # List current open session:
             ag.list_current_open_session()
-        if choice == "3":
-            try:
-                # Place users bids:
-                ag.place_bids()
-            except Exception:
-                logger.exception("Failed to register users")
-        if choice == "4":
-            try:
-                ag.list_market_balance()
-            except Exception:
-                logger.exception("Failed to register users")
+        elif choice == "3":
+            # Place users bids:
+            ag.place_bids()
+        elif choice == "4":
+            # List users bids for current open session:
+            ag.list_market_bids(open_session_only=True)
+        elif choice == "5":
+            # List users market balance
+            ag.list_market_balance()
+        elif choice == "6":
+            # List users bid history:
+            ag.list_market_bids(open_session_only=False)
         elif choice == "9":
             return
         elif choice == "0":
@@ -132,26 +131,14 @@ def wallet_menu():
         choice = input("Please make a choice: ")
 
         if choice == "1":
-            try:
-                ag.get_wallet_addresses()
-            except Exception as ex:
-                logger.exception(repr(ex))
+            ag.get_wallet_addresses()
         elif choice == "2":
-            try:
-                ag.get_wallet_balances()
-            except Exception as ex:
-                logger.exception(repr(ex))
+            ag.get_wallet_balances()
         elif choice == "3":
-            try:
-                out_address = input("Enter output address: ")
-                ag.transfer_balance_to_address(address=out_address)
-            except Exception as ex:
-                logger.exception(repr(ex))
+            out_address = input("Enter output address: ")
+            ag.transfer_balance_to_address(address=out_address)
         elif choice == "4":
-            try:
-                ag.request_tokens()
-            except Exception as ex:
-                logger.exception(repr(ex))
+            ag.request_tokens()
         elif choice == "9":
             return
         elif choice == "0":
