@@ -169,7 +169,7 @@ class AgentManager:
         controller = ClientController()
 
         for user in self.wallet_user_list:
-            logger.info(f"Getting balance for user {user['email']}")
+            logger.info(f"Getting bids for user {user['email']}")
             email = user["email"]
             password = user["password"]
             active_session_id = None
@@ -183,9 +183,9 @@ class AgentManager:
                     # Get session_id & fetch data for that session:
                     active_session_id = session_data["market_session_id"]
 
-                balance = controller.get_current_session_bids(session_id=active_session_id)
-                logger.info(json.dumps(balance, indent=2))
-                logger.info(f"Getting balance for user {user['email']} ... Ok!")
+                bids = controller.get_current_session_bids(session_id=active_session_id)
+                logger.info(json.dumps(bids, indent=2))
+                logger.info(f"Getting bids for user {user['email']} ... Ok!")
             except MarketBidException:
                 logger.error("Failed to get market bids.")
             except BaseException:

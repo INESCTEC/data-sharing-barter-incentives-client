@@ -141,7 +141,7 @@ class ClientController(RequestController):
     def get_current_session_bids(self, session_id: int = None):
         params = {}
         if session_id is not None:
-            params["market_session"] = session_id,
+            params["market_session_id"] = session_id,
 
         response = self.__request_template(
             endpoint_cls=Endpoint(market_bid.GET, market_bid.uri),
@@ -149,7 +149,9 @@ class ClientController(RequestController):
             params=params,
             exception_cls=MarketBidException
         )
-        return response['data']
+
+        # Todo: this should be fixed in rest.
+        return response["data"]
 
     def place_bid(self,
                   session_id: int,
