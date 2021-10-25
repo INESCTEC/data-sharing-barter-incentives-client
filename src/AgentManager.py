@@ -1,10 +1,14 @@
 import os
 import json
+import datetime as dt
 
 from time import sleep
+
+import pandas as pd
 from loguru import logger
 
 from src.util.mock.user_generators import generate_users
+from src.util.mock.data_generators import MeasurementsGenerator
 from src.controller import FaucetController, WalletController, ClientController
 from src.controller.exception.APIException import *
 
@@ -127,6 +131,38 @@ class AgentManager:
                 logger.error(f"Registering user {user['email']} ... Failed!")
 
         return registered_users
+
+    def send_measurements(self, time_interval=60):
+        # Initialize API controller:
+        controller = ClientController()
+
+        for user in self.wallet_user_list:
+            logger.info(f"Posting data for user: {user['email']}")
+            email = user["email"]
+            password = user["password"]
+
+            # -- login to market REST:
+            controller.login(email, password)
+
+            # -- Create mock data (last 24h):
+            user_id = email.split("@")[0]
+            ed_ = dt.datetime.utcnow()
+            st_ = ed_ - pd.DateOffset(hours=24)
+            mg = MeasurementsGenerator()
+            data = mg.generate_mock_data_sin(start_date=st_, end_date=ed_)
+            data["unit"] = "kw"
+            data["datetime"] = data["datetime"].dt.strftime("%Y-%m-%d %H:%M:%S")
+            data.dropna(inplace=True)
+            json_payload = {
+                "resource_id": f"{user_id}-measur",
+                "resource_type": "measurements",
+                "time_interval": f"{time_interval}",
+                "aggregation_type": "avg",
+                "timeseries": data.to_dict(orient="records")
+            }
+            response = controller.send_measurements(payload=json_payload)
+            logger.info(response)
+            logger.info(f"Posting data for user: {user['email']} ... Ok!")
 
     def list_current_open_session(self):
         # Initialize API controller:

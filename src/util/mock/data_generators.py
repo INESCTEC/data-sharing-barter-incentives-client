@@ -150,8 +150,7 @@ class MeasurementsGenerator:
         return pd.DataFrame(
             {
                 "datetime": _ts,
-                "value": base_wave,
-                "variable": ["measurements"] * len(_ts),
+                "value": base_wave.round(6),
             })
 
     def get_measurements(self, agent_id, end_date):

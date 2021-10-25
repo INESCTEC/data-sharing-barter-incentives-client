@@ -63,7 +63,7 @@ def installation_menu():
         ag = AgentManager()
         ag.create_user_wallets(nr_users=nr_users, name_prefix=name_prefix)
 
-    input("Press any key to continue.")
+    input("Press ENTER to continue.")
 
 
 def market_menu():
@@ -74,11 +74,12 @@ def market_menu():
         _clear_console()
         print("     Market OPS MENU")
         print("1  - Register users in market platform")
-        print("2  - List open market session")
-        print("3  - Place market bids")
-        print("4  - List bids for current 'open' session")
-        print("5  - Get current market balance")
-        print("6  - List market bid history")
+        print("2  - Send measurements data (past 24h)")
+        print("3  - List open market session")
+        print("4  - Place market bids")
+        print("5  - List bids for current 'open' session")
+        print("6  - Get current market balance")
+        print("7  - List market bid history")
         _sep()
         print("9 - Return to previous menu.")
         print("0 - Exit")
@@ -88,19 +89,22 @@ def market_menu():
         if choice == "1":
             # Register users:
             ag.register_users()
-        elif choice == "2":
+        if choice == "2":
+            # Send measurements data (mock):
+            ag.send_measurements()
+        elif choice == "3":
             # List current open session:
             ag.list_current_open_session()
-        elif choice == "3":
+        elif choice == "4":
             # Place users bids:
             ag.place_bids()
-        elif choice == "4":
+        elif choice == "5":
             # List users bids for current open session:
             ag.list_market_bids(open_session_only=True)
-        elif choice == "5":
+        elif choice == "6":
             # List users market balance
             ag.list_market_balance()
-        elif choice == "6":
+        elif choice == "7":
             # List users bid history:
             ag.list_market_bids(open_session_only=False)
         elif choice == "9":
@@ -110,7 +114,7 @@ def market_menu():
         else:
             print("Invalid option.")
 
-        input("Press any key to continue.")
+        input("Press ENTER to continue.")
 
 
 def wallet_menu():
@@ -146,7 +150,7 @@ def wallet_menu():
         else:
             print("Invalid option.")
 
-        input("Press any key to continue.")
+        input("Press ENTER to continue.")
 
 
 def _clear_console():

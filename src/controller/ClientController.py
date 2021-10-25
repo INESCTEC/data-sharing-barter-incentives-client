@@ -174,10 +174,15 @@ class ClientController(RequestController):
         )
         return response['data']
 
-    def send_measurements(self, data):
-        # Todo: to implement after method created valorem server.
-        # Will send a JSON
-        pass
+    def send_measurements(self, payload):
+        response = self.__request_template(
+            endpoint_cls=Endpoint(raw_measurements.POST, raw_measurements.uri),
+            log_msg=f"Posting measurements data for "
+                    f"resource {payload['resource_id']}",
+            data=payload,
+            exception_cls=PostMeasurementsException
+        )
+        return response['data']
 
     def get_forecasts(self):
         # Todo: to implement after method created valorem server.
