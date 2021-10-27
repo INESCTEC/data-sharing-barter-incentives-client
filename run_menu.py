@@ -74,12 +74,13 @@ def market_menu():
         _clear_console()
         print("     Market OPS MENU")
         print("1  - Register users in market platform")
-        print("2  - Send measurements data (past 24h)")
-        print("3  - List open market session")
-        print("4  - Place market bids")
-        print("5  - List bids for current 'open' session")
-        print("6  - Get current market balance")
-        print("7  - List market bid history")
+        print("2  - Send measurements data (past 1000h)")
+        print("3  - Send measurements data (past 24h)")
+        print("4  - List open market session")
+        print("5  - Place market bids")
+        print("6  - List bids for current 'open' session")
+        print("7  - Get current market balance")
+        print("8  - List market bid history")
         _sep()
         print("9 - Return to previous menu.")
         print("0 - Exit")
@@ -91,20 +92,23 @@ def market_menu():
             ag.register_users()
         if choice == "2":
             # Send measurements data (mock):
-            ag.send_measurements()
-        elif choice == "3":
+            ag.send_measurements(lookback_hours=1000)
+        if choice == "3":
+            # Send measurements data (mock):
+            ag.send_measurements(lookback_hours=24)
+        elif choice == "4":
             # List current open session:
             ag.list_current_open_session()
-        elif choice == "4":
+        elif choice == "5":
             # Place users bids:
             ag.place_bids()
-        elif choice == "5":
+        elif choice == "6":
             # List users bids for current open session:
             ag.list_market_bids(open_session_only=True)
-        elif choice == "6":
+        elif choice == "7":
             # List users market balance
             ag.list_market_balance()
-        elif choice == "7":
+        elif choice == "8":
             # List users bid history:
             ag.list_market_bids(open_session_only=False)
         elif choice == "9":

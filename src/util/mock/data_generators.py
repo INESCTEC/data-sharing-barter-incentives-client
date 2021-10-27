@@ -128,10 +128,10 @@ class MeasurementsGenerator:
             )
         return agent_values, revenue_coefs
 
-    def generate_mock_data_sin(self, start_date, end_date):
+    def generate_mock_data_sin(self, start_date, end_date, freq):
         _st = start_date.strftime("%Y-%m-%d %H:%M:%S")
         _et = end_date.strftime("%Y-%m-%d %H:%M:%S")
-        _ts = pd.date_range(_st, _et, freq='H', tz='utc')
+        _ts = pd.date_range(_st, _et, freq=f'{freq}T', tz='utc')
         # Data sample configs:
         n_harmonics_ = np.random.randint(1, 5)
         base_wave = self.__wave_generator(1, len(_ts), 3)

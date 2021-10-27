@@ -132,7 +132,7 @@ class AgentManager:
 
         return registered_users
 
-    def send_measurements(self, time_interval=60):
+    def send_measurements(self, lookback_hours, time_interval=60):
         # Initialize API controller:
         controller = ClientController()
 
@@ -147,9 +147,11 @@ class AgentManager:
             # -- Create mock data (last 24h):
             user_id = email.split("@")[0]
             ed_ = dt.datetime.utcnow()
-            st_ = ed_ - pd.DateOffset(hours=24)
+            st_ = ed_ - pd.DateOffset(hours=lookback_hours)
             mg = MeasurementsGenerator()
-            data = mg.generate_mock_data_sin(start_date=st_, end_date=ed_)
+            data = mg.generate_mock_data_sin(start_date=st_,
+                                             end_date=ed_,
+                                             freq=time_interval)
             data["unit"] = "kw"
             data["datetime"] = data["datetime"].dt.strftime("%Y-%m-%d %H:%M:%S")
             data.dropna(inplace=True)
