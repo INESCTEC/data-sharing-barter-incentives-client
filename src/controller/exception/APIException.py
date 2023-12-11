@@ -98,6 +98,19 @@ class RegisterException(Exception):
         self.errors = errors
 
 
+class RegisterWalletException(Exception):
+    def __init__(self, message, errors):
+        super().__init__(message)
+
+        self.errors = errors
+
+
+class ResourceException(Exception):
+    def __init__(self, message, errors):
+        super().__init__(message)
+        self.errors = errors
+
+
 class PostMeasurementsException(Exception):
     def __init__(self, message, errors):
         # Call the base class constructor with the parameters it needs

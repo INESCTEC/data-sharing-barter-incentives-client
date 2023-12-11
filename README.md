@@ -1,62 +1,261 @@
-# valorem-client-python
+# PREDICO Market client
 
-Python client simulation tools for VALOREM project 
+A Dockerized interface for the Datamarket API.
 
-**Warning: This package should be used exclusively for tests / debug purposes.**
+The objective of this API software package is to provide an in-between assistance in the communication between the Datamarket client and the Datamarket Server API. 
+Its goal is mainly to abstract the client from the complexity of the underlying Blockchain technologies required to interact with the platform.
 
+The client wallet will still be located in the client's machine, but the client will not need to interact with it directly.
 
-## Install:
+**Warning**: This package should be used exclusively for tests/debug purposes.
 
-First, build docker container image: 
+# Installation
 
+You need first to get access to the Predico Client API repository and clone it to your local machine.
+
+## Update your ENV variables
+
+You should not be required to update any of the ENV variables, but in case you do, here's how:
+
+- Go to `.env` file and update your configurations:
+
+```
+# IOTA Configs:
+IOTA_FAUCET_URL=https://faucet.chrysalis-devnet.iota.cafe/api/plugins/faucet/enqueue
+IOTA_NODE_URL=https://api.lb-0.h.chrysalis-devnet.iota.cafe
+
+# Users wallet path:
+USERS_FILE_DIR=files/users/
+
+# VALOREM REST:
+VALOREM_REST_HOST=e-redes2.inesctec.pt
+VALOREM_REST_PORT=8081
+N_REQUEST_RETRIES=3
+```
+
+## Build docker image
+
+Build docker image:
 
 ```shell
 $ docker-compose build
 ```
 
+## Run docker container
 
-Alternatively, you can also download the docker container from INESC TEC Gitlab Registry
-
-
-1. Login into inesctec registry:
-
+Run docker container image. This will start the python client API simulation tool:
 
 ```shell
-$ docker login docker-registry.inesctec.pt
+$ docker-compose up
 ```
 
+## Documentation
 
+### Swagger
+The documentation for the Predico Datamarket API can be found at: http://localhost:8000/docs
 
-2. Pull pre-built container image from registry:
+### Postman
 
+Documentation and Postman collection can be found at: https://documenter.getpostman.com/view/391645/2s9YJZ5Qc7
 
-```shell
-$ docker-compose -f docker-compose.prod.yml pull
+# Steps
+
+The following steps are required to run the simulation tool and interact with the Predico Datamarket API.
+It's advised to run the steps in the order they are presented.
+
+## Register a new user
+
+It is required to register a new user before any other operation can be performed. 
+This is done by sending a POST request to the `/user/register_user/` endpoint.
+Once the user is registered, the user's wallet is created and the user's seed is stored in the `files/users/` directory 
+mapped to the docker container.
+
+[//]: # (After a sucessful registration, the user's wallet is funded with 1000 IOTA tokens from the )
+
+[//]: # ([IOTA Faucet]&#40;https://faucet.chrysalis-devnet.iota.cafe/&#41; and the email **must be validated** &#40;check your email&#41;.)
+
+**Warning:** the user's password to access the wallet is stored in plain text. 
+This is done for simplicity and tests purposes only.
+
+```python
+
+import requests
+import json
+
+url = f"http://localhost:8000/user/register_user/"
+
+payload = json.dumps({
+  "email": "andre.f.garcia@inesctec.pt",
+  "password": "1234567890!",
+  "password_conf": "1234567890!",
+  "first_name": "Andre",
+  "last_name": "Garcia",
+  "role": [
+    "buyer",
+    "seller"
+  ]
+})
+headers = {
+  'Content-Type': 'application/json'
+}
+
+response = requests.request("POST", url, headers=headers, data=payload)
+
 ```
-    
 
-3. Update your ENV variables:
+## Register a new resource
 
-- Go to `.env` file and update REST connection configs:
+After a user is registered, it is possible to create a resource. 
+This is done by sending a POST request to the `/resource/register_resource/` endpoint.
+The resource is created and stored in the `files/users/` directory mapped to the docker container.
 
+
+```python
+import requests
+import json
+
+url = "http://localhost:8000/resource/register_resource/"
+
+payload = json.dumps({
+  "email": "andre.f.garcia@inesctec.pt",
+  "name": "teste-parque",
+  "type": "measurements",
+  "to_forecast": True
+})
+headers = {
+  'Content-Type': 'application/json'
+}
+
+response = requests.request("POST", url, headers=headers, data=payload)
+
+print(response.text)
 ```
-VALOREM_REST_HOST=insert_rest_ip_here
-VALOREM_REST_PORT=insert_rest_port_here
+
+## Register wallet
+
+To be able to receive payments or to bid in **OPEN** sessions for the data measurements contributions it is required for the client to register a wallet.
+
+```python
+import requests
+
+url = "http://localhost:8000/wallet/register_wallet/?email=andre.f.garcia@inesctec.pt"
+
+payload = ""
+headers = {}
+
+response = requests.request("GET", url, headers=headers, data=payload)
+
+print(response.text)
 ```
 
-## Usage:
+## Bid on a resource
 
-Second, run docker container image. This should launch an interactive menu through
-which you can controll your agents wallets & communication with market platform.
+### Fund wallet
 
+To be able to bid on a resource, the client's wallet must be funded with IOTA tokens.
 
-```shell
-$ docker-compose run --rm app python run_menu.py
+```python
+import requests
+
+url = "http://localhost:8000/wallet/fund_wallet/?email=andre.f.garcia@inesctec.pt"
+
+payload = ""
+headers = {}
+
+response = requests.request("GET", url, headers=headers, data=payload)
+
+print(response.text)
 ```
 
+After a resource is created and a session is **OPEN**, it is possible to bid on it.
+This is done by sending a POST request to the `/session/bid/` endpoint.
 
-Alternatively, **if you are using the pre-built docker containers**, use the production Compose file:
 
-```shell
-$ docker-compose -f docker-compose.prod.yml run --rm app python run_menu.py
+```python
+import requests
+import json
+
+url = "http://localhost:8000/session/bid/"
+
+payload = json.dumps({
+  "email": "andre.f.garcia@inesctec.pt",
+  "price": 110000000,
+  "max_payment": 110000000,
+  "resource": 7
+})
+headers = {
+  'Content-Type': 'application/json'
+}
+
+response = requests.request("POST", url, headers=headers, data=payload)
+
+print(response.text)
 ```
+
+## Fund wallet
+
+To be able to bid on a resource, the client's wallet must be funded with IOTA tokens. 
+You can also withdraw tokens from the [IOTA Faucet](https://faucet.chrysalis-devnet.iota.cafe/) giving the client's 
+wallet address.
+
+```python
+import requests
+
+url = "http://localhost:8000/wallet/fund_wallet/?email=andre.f.garcia@inesctec.pt"
+
+payload = ""
+headers = {}
+
+response = requests.request("GET", url, headers=headers, data=payload)
+
+print(response.text)
+```
+
+## Contribute with data measurements
+
+You can contribute with measurements for the overall effort of the Datamarket engine by sending a 
+POST request to the `/data/send_measurements/` endpoint.
+At the end of each session user contributions are evaluated and contributions may be rewarded with IOTA tokens in case 
+they are considered valid and useful for the overall effort of the Datamarket engine.
+
+```python
+import requests
+import json
+
+url = "http://localhost:8000/data/send_measurements/"
+
+payload = json.dumps({
+  "email": "andre.f.garcia11@example.com",
+  "resource_name": "teste-parque-4",
+  "time_interval": 60,
+  "aggregation_type": "avg",
+  "units": "kw",
+  "timeseries": [
+    {
+      "datetime": "2020-01-01 00:00:00",
+      "value": "1.0"
+    },
+    {
+      "datetime": "2020-01-01 01:00:00",
+      "value": "2.0"
+    }
+  ]
+})
+headers = {
+  'Content-Type': 'application/json'
+}
+
+response = requests.request("POST", url, headers=headers, data=payload)
+
+print(response.text)
+```
+
+# Wallet and Client configs
+
+The client's wallet and configurations by default are stored in the `files/users/` directory mapped to 
+the docker container.
+
+# Logging
+
+The client's logs are stored in the `files/logfile.log/` directory mapped to the docker container.
+To best understand the client's behaviour, it is advised to check the logs.

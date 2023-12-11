@@ -36,6 +36,8 @@ class ClientController(RequestController):
             data=data,
             params=params,
             auth_token=self.access_token)
+
+        # todo verify response
         # -- Inspect response:
         if rsp.status_code == HTTPStatus.OK:
             logger.debug(f"{log_msg} ... Ok! ({time() - t0:.2f})")
@@ -43,7 +45,7 @@ class ClientController(RequestController):
         else:
             log_msg_ = f"{log_msg} ... Failed! ({time() - t0:.2f})"
             logger.error(log_msg_ + f"\n{rsp.json()}")
-            raise exception_cls(message=log_msg_, errors=rsp.json())
+            return rsp.json()
 
     def register(self, email, password, password_conf,
                  first_name, last_name, role):
@@ -62,7 +64,7 @@ class ClientController(RequestController):
             endpoint=Endpoint(register.POST, register.uri),
             data=payload
         )
-        if rsp.status_code == HTTPStatus.OK:
+        if rsp.status_code == HTTPStatus.CREATED:
             logger.debug(f"{log_} ... Ok! ({time() - t0:.2f})")
             return rsp
         else:
@@ -71,6 +73,7 @@ class ClientController(RequestController):
             raise RegisterException(message=log_msg, errors=rsp.json())
 
     def register_wallet_address(self, address):
+
         payload = {
             "wallet_address": address,
         }
@@ -79,6 +82,50 @@ class ClientController(RequestController):
             log_msg=f"Registering wallet address: {address}",
             data=payload,
             exception_cls=RegisterException
+        )
+        if response['code'] not in [200, 201]:
+            raise RegisterWalletException(message=response['message'], errors=response['data'])
+
+        return response['data']
+
+    def register_resource(self, resource_data):
+        payload = {
+            "name": resource_data.name,
+            "type": resource_data.type,
+            "to_forecast": resource_data.to_forecast,
+        }
+        try:
+            response = self.__request_template(
+                endpoint_cls=Endpoint(resource.POST, resource.uri),
+                log_msg=f"Registering resource: {resource_data.name}",
+                data=payload,
+                exception_cls=ResourceException
+            )
+            return response['data']
+        except Exception as e:
+            raise e
+
+    def delete_resource(self, resource_id):
+        payload = {
+            "resource_id": resource_id,
+        }
+        try:
+            response = self.__request_template(
+                endpoint_cls=Endpoint(resource.DELETE, resource.uri),
+                log_msg=f"Deleting resource: {resource_id}",
+                data=payload,
+                exception_cls=ResourceException
+            )
+        except Exception as e:
+            raise e
+
+        return response
+
+    def list_resources(self):
+        response = self.__request_template(
+            endpoint_cls=Endpoint(resource.GET, resource.uri),
+            log_msg=f"Listing resources",
+            exception_cls=ResourceException
         )
         return response['data']
 
@@ -115,6 +162,14 @@ class ClientController(RequestController):
             endpoint_cls=Endpoint(market_balance.GET,
                                   market_balance.uri),
             log_msg=f"Getting market account balance",
+            exception_cls=MarketSessionException
+        )
+        return response['data']
+
+    def list_sessions(self):
+        response = self.__request_template(
+            endpoint_cls=Endpoint(market_session.GET, market_session.uri),
+            log_msg=f"Listing market sessions",
             exception_cls=MarketSessionException
         )
         return response['data']
@@ -158,13 +213,15 @@ class ClientController(RequestController):
                   bid_price,
                   max_payment,
                   gain_func,
-                  tangle_msg_id):
+                  resource_id):
+
         payload = {
             "market_session": session_id,
             "bid_price": bid_price,
             "max_payment": max_payment,
             "gain_func": gain_func,
-            "tangle_msg_id": tangle_msg_id
+            "resource": resource_id,
+
         }
         response = self.__request_template(
             endpoint_cls=Endpoint(market_bid.POST, market_bid.uri),
@@ -172,16 +229,42 @@ class ClientController(RequestController):
             data=payload,
             exception_cls=MarketBidException
         )
-        return response['data']
+
+        if response['code'] not in [200, 201]:
+            raise MarketBidException(message=response['message'], errors=response['message'])
+
+        return response
+
+    def patch_bid(self, bid_id, tangle_msg_id):
+
+        payload = {
+            "tangle_msg_id": tangle_msg_id,
+        }
+        formatted_uri = market_bid_with_id.uri.format(bid_id=bid_id)
+        response = self.__request_template(
+            endpoint_cls=Endpoint(market_bid_with_id.PATCH, formatted_uri),
+            log_msg=f"Updating bid with ID: {bid_id}",
+            data=payload,
+            exception_cls=MarketBidException
+        )
+        if response['code'] not in [200, 201]:
+            logger.error(response)
+            raise MarketBidException(message=response['message'], errors=response['message'])
+
+        return response
 
     def send_measurements(self, payload):
+
         response = self.__request_template(
             endpoint_cls=Endpoint(raw_measurements.POST, raw_measurements.uri),
             log_msg=f"Posting measurements data for "
-                    f"resource {payload['resource_id']}",
+                    f"resource {payload['resource_name']}",
             data=payload,
             exception_cls=PostMeasurementsException
         )
+        if response['code'] not in [200, 201]:
+            raise PostMeasurementsException(message=response['message'], errors=response['message'])
+
         return response['data']
 
     def get_forecasts(self):

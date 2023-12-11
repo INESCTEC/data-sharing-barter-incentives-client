@@ -6,8 +6,8 @@ RUN apt-get update && apt-get install -y git build-essential curl libudev-dev cl
 # musl-dev
 
 # install rust for python bindings
-RUN git clone https://github.com/iotaledger/wallet.rs.git
-RUN git clone https://github.com/iotaledger/iota.rs.git
+RUN git clone -b production https://github.com/iotaledger/wallet.rs.git
+RUN git clone -b production https://github.com/iotaledger/iota.rs.git
 RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
 
 ENV PATH="/root/.cargo/bin:${PATH}"
@@ -39,6 +39,8 @@ COPY --from=build  /build_dir/wallet.rs/bindings/python/native/target/wheels/ /a
 RUN export LD_LIBRARY_PATH=/usr/local/lib
 RUN apt-get update && apt-get install -y build-essential openssh-client nano
 
+# update PIP
+RUN pip install --upgrade pip
 # install required packages
 RUN pip install -r requirements.txt
 
@@ -46,3 +48,5 @@ RUN pip install *.whl
 
 # copy project
 COPY . /app
+# Command to run the application
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
