@@ -1,4 +1,4 @@
-# PREDICO Market client
+# PREDICO  (Data Sharing / Barter Incentives) client.
 
 A Dockerized interface for the Datamarket API.
 
