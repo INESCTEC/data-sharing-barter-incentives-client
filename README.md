@@ -11,27 +11,35 @@ The client wallet will still be located in the client's machine, but the client 
 
 # Installation
 
-You need first to get access to the Predico Client API repository and clone it to your local machine.
+You need first to get access to the PREDICO (Data Sharing / Barter Incentives) client repository and clone it to your local machine.
+    
+```shell
+git clone https://github.com/CPES-Power-and-Energy-Systems/predico-data-sharing-barter-client.git
+```
 
-## Update your ENV variables
+## Environment variables
 
 You should not be required to update any of the ENV variables, but in case you do, here's how:
 
-- Go to `.env` file and update your configurations:
+- Go to `.env` file and update the default configuration:
 
-```
-# IOTA Configs:
-IOTA_FAUCET_URL=https://faucet.chrysalis-devnet.iota.cafe/api/plugins/faucet/enqueue
-IOTA_NODE_URL=https://api.lb-0.h.chrysalis-devnet.iota.cafe
+Take a look to the following table with the .env variables and their description:
 
-# Users wallet path:
-USERS_FILE_DIR=files/users/
+| Variable | Description |
+| --- | --- |
+| `IOTA_FAUCET_URL` | URL of the IOTA Faucet |
+| `IOTA_NODE_URL` | URL of the IOTA Node |
+| `TESTNET_ETH_NODE_URL` | URL of the Ethereum Node |
+| `TESTNET_ETHERSCAN_API_KEY` | API key for Etherscan |
+| `TESTNET_ETHERSCAN_URL` | URL of Etherscan |
+| `TESTNET_ETH_ACCOUNT_ADDRESS` | Ethereum account address |
+| `TESTNET_ETH_PRIVATE_KEY` | Ethereum account private key |
+| `TESTNET_BATCH_CONTRACT_ADDRESS` | Ethereum batch contract address |
+| `USERS_FILE_DIR` | Path to the users directory |
+| `VALOREM_REST_HOST` | Host of the Valorem REST API |
+| `VALOREM_REST_PORT` | Port of the Valorem REST API |
+| `N_REQUEST_RETRIES` | Number of retries for the Valorem REST API |
 
-# VALOREM REST:
-VALOREM_REST_HOST=e-redes2.inesctec.pt
-VALOREM_REST_PORT=8081
-N_REQUEST_RETRIES=3
-```
 
 ## Build docker image
 
