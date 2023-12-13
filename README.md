@@ -7,7 +7,8 @@ Its goal is mainly to abstract the client from the complexity of the underlying 
 
 The client wallet will still be located in the client's machine, but the client will not need to interact with it directly.
 
-**Warning**: This package should be used exclusively for tests/debug purposes.
+> [!CAUTION]
+> This package should be used exclusively for tests/debug use cases purposes.
 
 # Installation
 
