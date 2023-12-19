@@ -1,0 +1,469 @@
+openapi: 3.0.0
+info:
+  title: Predico Wallet Client API
+  description: With this API you can register users in the market, send measurements and place bids. You have a wallet assigned to each user you create using this API This API is part of the Predico project and its purpose is to allow users to interact with the market while abstracting the complexity of the underlying technologies
+  version: 0.1.0
+paths:
+  /user/register_user/:
+    post:
+      tags:
+        - user
+      summary: Register User
+      description: |-
+        This endpoint registers a list of users in the market.
+        It creates a wallet and an account for each user and returns the wallet address
+        to be registered in the market.
+      operationId: register_user_user_register_user__post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistrationSchema'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseSchema'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /resource/register_resource/:
+    post:
+      tags:
+        - resource
+      summary: Register Resource
+      operationId: register_resource_resource_register_resource__post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResourceSchema'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /resource/list_resource/:
+    get:
+      tags:
+        - resource
+      summary: List Resources
+      operationId: list_resources_resource_list_resource__get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /wallet/get_wallet_balance/:
+    get:
+      tags:
+        - wallet
+      summary: Get Balance
+      operationId: get_balance_wallet_get_wallet_balance__get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /wallet/register_wallet/:
+    get:
+      tags:
+        - wallet
+      summary: Register Wallet
+      operationId: register_wallet_wallet_register_wallet__get
+      parameters:
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+            format: email
+            title: Email
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /wallet/fund_wallet/:
+    get:
+      tags:
+        - wallet
+      summary: Fund Wallet
+      description: This endpoint funds the wallet of a provided user with 10000 tokens.
+      operationId: fund_wallet_wallet_fund_wallet__get
+      parameters:
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+            format: email
+            title: Email
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /session/open/:
+    get:
+      tags:
+        - session
+      summary: Open Session
+      operationId: open_session_session_open__get
+      parameters:
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+            format: email
+            title: Email
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /session/bid/:
+    patch:
+      tags:
+        - session
+      summary: Patch Bid
+      operationId: patch_bid_session_bid__patch
+      parameters:
+        - name: email
+          in: query
+          required: true
+          schema:
+            title: Email
+        - name: bid_id
+          in: query
+          required: true
+          schema:
+            title: Bid Id
+        - name: tangle_msg_id
+          in: query
+          required: true
+          schema:
+            title: Tangle Msg Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+        - session
+      summary: Bid Session
+      operationId: bid_session_session_bid__post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BidSchema'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      tags:
+        - session
+      summary: List Bid
+      operationId: list_bid_session_bid__get
+      parameters:
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+            format: email
+            title: Email
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /data/send_measurements/:
+    post:
+      tags:
+        - data
+      summary: Send Measurements
+      operationId: send_measurements_data_send_measurements__post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MeasurementsSchema'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /:
+    get:
+      summary: Test
+      operationId: test__get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                title: Response Test  Get
+components:
+  schemas:
+    BidSchema:
+      properties:
+        email:
+          type: string
+          format: email
+          title: Email
+        price:
+          type: integer
+          title: Price
+        max_payment:
+          type: integer
+          title: Max Payment
+        resource:
+          type: integer
+          title: Resource
+      type: object
+      required:
+        - email
+        - price
+        - max_payment
+        - resource
+      title: BidSchema
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    MeasurementsSchema:
+      properties:
+        email:
+          type: string
+          format: email
+          title: Email
+        resource_name:
+          type: string
+          title: Resource Name
+          example: resource-3
+        time_interval:
+          type: integer
+          title: Time Interval
+          example: 60
+        aggregation_type:
+          type: string
+          title: Aggregation Type
+          example: avg
+        units:
+          type: string
+          title: Units
+          example: kw
+        timeseries:
+          items:
+            $ref: '#/components/schemas/TimeSeriesItem'
+          type: array
+          title: Timeseries
+      type: object
+      required:
+        - email
+        - resource_name
+        - time_interval
+        - aggregation_type
+        - units
+        - timeseries
+      title: MeasurementsSchema
+    ResourceSchema:
+      properties:
+        email:
+          type: string
+          format: email
+          title: Email
+        name:
+          type: string
+          title: Name
+          example: resource-3
+        type:
+          type: string
+          title: Type
+          example: measurements
+        to_forecast:
+          type: boolean
+          title: To Forecast
+          default: true
+          example: false
+      type: object
+      required:
+        - email
+        - name
+        - type
+      title: ResourceSchema
+    ResponseSchema:
+      properties:
+        code:
+          type: integer
+          title: Code
+          example: 200
+        data:
+          type: object
+          title: Data
+          example: {}
+        status:
+          anyOf:
+            - type: integer
+          title: Status
+          default: 0
+        message:
+          anyOf:
+            - type: string
+          title: Message
+      type: object
+      required:
+        - code
+        - data
+        - status
+        - message
+      title: ResponseSchema
+    TimeSeriesItem:
+      properties:
+        datetime:
+          type: string
+          title: Datetime
+          example: '2020-01-01 00:00:00'
+        value:
+          type: number
+          title: Value
+          example: 1
+      type: object
+      required:
+        - datetime
+        - value
+      title: TimeSeriesItem
+    UserRegistrationSchema:
+      properties:
+        email:
+          type: string
+          format: email
+          title: Email
+        password:
+          type: string
+          title: Password
+        password_conf:
+          type: string
+          title: Password Conf
+        first_name:
+          type: string
+          title: First Name
+        last_name:
+          type: string
+          title: Last Name
+        role:
+          items:
+            type: string
+          type: array
+          title: Role
+          description: Roles for the user. A user can have multiple roles.
+      type: object
+      required:
+        - email
+        - password
+        - password_conf
+        - first_name
+        - last_name
+        - role
+      title: UserRegistrationSchema
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+              - type: string
+              - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      type: object
+      required:
+        - loc
+        - msg
+        - type
+      title: ValidationError
