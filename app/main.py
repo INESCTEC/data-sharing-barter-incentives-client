@@ -1,11 +1,16 @@
 import os
+
 from fastapi import FastAPI
 from loguru import logger
+from app.database import engine
+from app.models import models
+
+from app.routers.measurements import router as measurements_router
 from app.routers.resource import router as resource_router
-from app.routers.session import router as session_router
+from app.routers.forecast import router as forecast_router
+from app.routers.market import router as market_router
 from app.routers.user import router as user_router
 from app.routers.wallet import router as wallet_router
-from app.routers.measurements import router as measurements_router
 
 app = FastAPI(
     title="Predico Wallet Client API",
@@ -19,11 +24,15 @@ log_format = "{time:YYYY-MM-DD HH:mm:ss} | {level:<5} | {message}"
 logger.add(os.path.join("files", "logfile.log"), format=log_format, level='DEBUG', backtrace=True)
 logger.info("-" * 79)
 
-app.include_router(user_router, prefix="/user", tags=["user"])
-app.include_router(resource_router, prefix="/resource", tags=["resource"])
-app.include_router(wallet_router, prefix="/wallet", tags=["wallet"])
-app.include_router(session_router, prefix="/session", tags=["session"])
-app.include_router(measurements_router, prefix="/data", tags=["data"])
+app.include_router(user_router, prefix="/user", tags=["Authentication"])
+app.include_router(resource_router, prefix="/user/resource", tags=["Resource"])
+app.include_router(wallet_router, prefix="/wallet", tags=["Wallet"])
+app.include_router(market_router, prefix="/market", tags=["Market"])
+app.include_router(forecast_router, prefix="/user/forecast", tags=["Forecast"])
+app.include_router(measurements_router, prefix="/user/data", tags=["Data"])
+# Dependency
+
+models.Base.metadata.create_all(bind=engine)
 
 
 @app.get("/")

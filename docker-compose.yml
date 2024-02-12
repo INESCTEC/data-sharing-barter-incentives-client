@@ -2,39 +2,32 @@ version: "3.7"
 services:
 
   app:
-    build: .
-    container_name: valorem-client-python
-    volumes:
-      - storage:/app/files
+    build:
+      context: .
+      args:
+      - GITLAB_TOKEN
+    container_name: predico-rest-client-python
     env_file:
       - .env
+    volumes:
+      - storage:/app/files
+
     ports:
       - "8000:8000"
 
-#  tsg-core-container:
-#    image: docker.nexus.dataspac.es/core-container:feature-open-sourcing
-#    pull_policy: always
-#    volumes:
-#      - ./application.yaml:/config/application.yaml:ro
-#      - ./cachain.crt:/secrets/idsidentity/ca.crt:ro
-#      - ./component.crt:/secrets/idsidentity/ids.crt:ro
-#      - ./component.key:/secrets/idsidentity/ids.key:ro
-#  tsg-admin-ui:
-#    image: docker.nexus.dataspac.es/ui/core-container-ui:master
-#    pull_policy: always
-#    environment:
-#      - API_BACKEND=tsg-core-container:8082/api/
-#    ports:
-#      - 31000:80
-
-  # # Uncomment the block below to enable the OpenAPI data app
-  # tsg-openapi-data-app:
-  #   image: docker.nexus.dataspac.es/data-apps/openapi-data-app:feature-open-sourcing
-  #   pull_policy: always
-  #   volumes:
-  #     - ./application.dataapp.yaml:/app/resources/application.yaml
-  #   ports:
-  #     - 31001:8080
+  db:
+    image: postgres:12.0-alpine
+    container_name: predico-client_postgresql
+    restart: always
+    environment:
+      POSTGRES_DB: predico
+      POSTGRES_USER: predico
+      POSTGRES_PASSWORD: predico
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data
 
 volumes:
   storage:
+  postgresql-data:
+
+

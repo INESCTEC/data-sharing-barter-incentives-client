@@ -1,26 +1,23 @@
-from fastapi import APIRouter
-from fastapi.responses import JSONResponse
+import json
+import os
 
-from app.schemas import MeasurementsSchema
-from src.AgentManager import AgentManager
-from src.controller.exception.APIException import *
+from fastapi import APIRouter, Depends, HTTPException, Response
+from sqlalchemy.orm import Session
+
+from app.RequestController import RequestController
+from app.database import get_db_session
+from app.schemas.schemas import MeasurementsSchema
 
 router = APIRouter()
 
-ag = AgentManager()
-ag.load_available_users()
 
+@router.post("/")
+def register_measurement(payload: MeasurementsSchema, db: Session = Depends(get_db_session)):
 
-@router.post("/send_measurements/")
-def send_measurements(measurements: MeasurementsSchema):
-    user = ag.get_user_by_email(email=measurements.email)
-    # make sure the file is up-to-date
-    ag.load_available_users()
-    if not user:
-        return JSONResponse(content={"message": f"User {measurements.email} not found"}, status_code=400)
+    controller = RequestController(db=db)
     try:
-        ag.send_measurements(user=user, data=measurements)
-    except PostMeasurementsException as e:
-        return JSONResponse(content={"message": f"Error sending measurements: {str(e)}"}, status_code=400)
-    return JSONResponse({"message": f"Sent measurements for the resource {measurements.resource_name} sent!"})
+        response = controller.post('api/data/raw-data', json=payload.model_dump(exclude_none=True))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return Response(content=json.dumps(response.json()), status_code=200, media_type="application/json")
 

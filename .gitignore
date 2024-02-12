@@ -1,8 +1,8 @@
 .idea/
 .vscode/
-files/
+.env
 !files/.keep
-
+restart_docker_compose.sh
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
