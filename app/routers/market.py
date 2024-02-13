@@ -42,11 +42,18 @@ def session_bid(market_session: int, db: Session = Depends(get_db_session)):
 async def session_bid(background_tasks: BackgroundTasks,
                       payload: BidSchema,
                       db: Session = Depends(get_db_session)):
+
     controller = RequestController(db=db)
     iota_payment = IOTAPaymentController(config=wallet_config())
 
     try:
         response = controller.get('api/market/wallet-address')
+
+        if response.status_code != 200:
+            return JSONResponse(content=response.json(),
+                                status_code=response.status_code,
+                                media_type="application/json")
+
         market_wallet_address = response.json()['data']['wallet_address']
         balance = iota_payment.get_balance(identifier=payload.email)['baseCoin']['available']
 
