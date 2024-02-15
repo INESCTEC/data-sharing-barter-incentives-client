@@ -28,7 +28,7 @@ class RequestController:
     # Set to True if you want to verify the SSL certificate or None to ignore
     verify = False
     no_auth_endpoints = {'api/token', 'api/user/register'}
-    base_url = os.getenv("BASE_URL", "http://192.168.1.164:8081")
+    base_url = os.getenv("BASE_URL", "http://predico02.inesctec.pt")
 
     def __init__(self, db: Session):
 
