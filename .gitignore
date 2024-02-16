@@ -1,6 +1,5 @@
 .idea/
 .vscode/
-.env
 !files/.keep
 restart_docker_compose.sh
 # Byte-compiled / optimized / DLL files
