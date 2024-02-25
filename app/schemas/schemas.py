@@ -3,6 +3,7 @@ import os
 from enum import Enum
 from typing import List
 
+from datetime import datetime
 from pydantic import BaseModel, Field, EmailStr, field_validator
 
 
@@ -44,6 +45,11 @@ class TransferSchema(BaseModel):
                 "wallet_address": "some_wallet_address"
             }
         }
+
+
+class ExternalConnectorSchema(BaseModel):
+    external_access_url: str
+    external_connector_id: str
 
 
 class UserLoginSchema(BaseModel):
@@ -98,23 +104,23 @@ class UserRegistrationSchema(BaseModel):
     password_conf: str
     first_name: str
     last_name: str
-    role: List[str] = Field(..., description="Roles for the user. A user can have multiple roles.")
+    role: List[int] = Field(..., description="Roles for the user. A user can have multiple roles.")
 
-    @field_validator("role")
-    def validate_and_convert_role(cls, role_str):
-        role_mapping = {
-            "buyer": 1,
-            "seller": 2
-        }
-
-        for i, role in enumerate(role_str):
-            if role not in role_mapping:
-                allowed_roles = list(role_mapping.keys())
-                raise ValueError(f"Invalid role: {role_str}. Allowed roles are {allowed_roles}")
-            role_str[i] = role_mapping[role]
-        # We're returning the original string, as you wanted, but can access the integer mapping
-        # via the `role_mapping` dictionary elsewhere in the code if needed.
-        return role_str
+    # @field_validator("role")
+    # def validate_and_convert_role(cls, role_str):
+    #     role_mapping = {
+    #         "buyer": 1,
+    #         "seller": 2
+    #     }
+    #
+    #     for i, role in enumerate(role_str):
+    #         if role not in role_mapping:
+    #             allowed_roles = list(role_mapping.keys())
+    #             raise ValueError(f"Invalid role: {role_str}. Allowed roles are {allowed_roles}")
+    #         role_str[i] = role_mapping[role]
+    #     # We're returning the original string, as you wanted, but can access the integer mapping
+    #     # via the `role_mapping` dictionary elsewhere in the code if needed.
+    #     return role_str
 
     @field_validator('password')
     def validate_password(cls, value):
@@ -173,22 +179,6 @@ class MeasurementsSchema(BaseModel):
     aggregation_type: str = Field(..., example="avg")
     units: str = Field(..., example="kw")
     timeseries: List[TimeSeriesItem]
-
-    # @field_validator('resource_name')
-    # def validate_resource_name(cls, resource_name, values):
-    #
-    #     user_file_dir = os.environ["USERS_FILE_DIR"]
-    #     with open(os.path.join(user_file_dir, 'users.json'), "r") as f:
-    #         users = json.load(f)
-    #
-    #     for user in users:
-    #         if user['email'] == values.data.get('email'):
-    #             valid_resources = [resource['name'] for resource in user['resources']]
-    #             if resource_name in valid_resources:
-    #                 return resource_name
-    #             else:
-    #                 raise ValueError("Invalid resource name.")
-    #     raise ValueError(f"Invalid email.")
 
     class Config:
         json_schema_extra = {

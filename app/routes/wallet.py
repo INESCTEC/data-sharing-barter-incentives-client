@@ -7,10 +7,12 @@ from payment.PaymentGateway.IOTAPayment.IOTAPaymentController import IOTAPayment
 from pydantic import EmailStr
 from sqlalchemy.orm import Session
 
-from app.RequestController import RequestController
-from app.database import get_db_session
 from app.helpers.helper import wallet_config
 from app.schemas.schemas import TransferSchema, WalletSchema, TransferReceiptSchema
+from app.apis.RequestStrategy import RequestContext
+from app.dependencies import get_request_strategy, get_db_session
+
+from app.helpers.helper import get_header
 
 router = APIRouter()
 
@@ -71,7 +73,6 @@ def balance(email: EmailStr):
 
 @router.post("/transfer")
 def transfer_funds(payload: TransferSchema):
-
     wallet_controller = IOTAPaymentController(config=wallet_config())
     try:
         response = wallet_controller.execute_transaction(from_identifier=payload.email,
@@ -108,12 +109,18 @@ def request_funds(email: EmailStr):
 
 
 @router.get("/register")
-def register_wallet_address(email: EmailStr, db: Session = Depends(get_db_session)):
+def register_wallet_address(email: EmailStr,
+                            db: Session = Depends(get_db_session),
+                            request_strategy: RequestContext = Depends(get_request_strategy)):
     try:
-        controller = RequestController(db=db)
         wallet_controller = IOTAPaymentController(config=wallet_config())
         address = wallet_controller.get_address(email=email)
-        response = controller.post('api/user/wallet-address', json={"wallet_address": address})
+
+        header = get_header(db=db)
+        response = request_strategy.make_request(endpoint="/user/wallet-address",
+                                                 method="post",
+                                                 data={"wallet_address": address},
+                                                 headers=header)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return Response(content=json.dumps(response.json()), status_code=200, media_type="application/json")

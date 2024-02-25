@@ -1,8 +1,6 @@
-from sqlalchemy import create_engine, Column, Integer, String, DateTime
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from app.database import Base
-from datetime import datetime, timedelta
+from sqlalchemy import Column, Integer, String, DateTime
+from datetime import datetime
+from app.dependencies import Base
 
 
 class Token(Base):
@@ -10,5 +8,5 @@ class Token(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     token = Column(String, unique=True)  # Ensures each token is stored once
+    created_at = Column(DateTime, default=datetime.utcnow)  # Store the time the token was created
     expires_at = Column(DateTime)  # Store the expiration time of the token
-

@@ -1,6 +1,9 @@
 import os
 
 from payment.PaymentGateway.IOTAPayment.IOTAPaymentController import WalletConfig
+from app.models.models import Token
+from app.crud import get_token
+from sqlalchemy.orm import Session
 
 
 def wallet_config() -> WalletConfig:
@@ -30,3 +33,9 @@ def transaction_to_dict(transaction):
         "blockId": transaction.blockId
     }
 
+
+def get_header(db: Session) -> dict:
+    token: Token = get_token(db)
+    if not token:
+        return {"Content-Type": "application/json"}
+    return {"Authorization": f"Bearer {token.token}", "Content-Type": "application/json"}
