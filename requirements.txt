@@ -28,4 +28,4 @@ urllib3==2.2.0
 uvicorn==0.23.2
 sqlalchemy~=2.0.25
 git+https://gitlab.inesctec.pt/valorem/payment-service.git
-git+https://oauth2:glpat-6yKrSTYTArxCNypzAS69@gitlab.inesctec.pt/cpes/european-projects/enershare/tsg-client.git
+git+https://github.com/CPES-Power-and-Energy-Systems/tsg-client
