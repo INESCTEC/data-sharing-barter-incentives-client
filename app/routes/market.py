@@ -56,6 +56,7 @@ async def session_bid(background_tasks: BackgroundTasks,
                       payload: BidSchema,
                       db: Session = Depends(get_db_session),
                       request_strategy: RequestContext = Depends(get_request_strategy)):
+
     header = get_header(db=db)
 
     for _ in enumerate(range(retries)):
@@ -103,7 +104,8 @@ async def session_bid(background_tasks: BackgroundTasks,
                 market_wallet_address,
                 payload.max_payment,
                 request_strategy,
-                bid_id
+                bid_id,
+                header
             )
 
             return JSONResponse(content={"message": "Bid successfully posted. Transaction in progress..."},
@@ -124,7 +126,8 @@ async def execute_transaction_and_update_bid(iota_payment,
                                              to_identifier,
                                              value,
                                              request_strategy,
-                                             bid_id):
+                                             bid_id,
+                                             header):
 
     try:
         transaction = await asyncio.to_thread(
@@ -138,7 +141,8 @@ async def execute_transaction_and_update_bid(iota_payment,
         await asyncio.to_thread(request_strategy.make_request,
                                 endpoint=f'/market/bid/{bid_id}',
                                 method='patch',
-                                data=data)
+                                data=data,
+                                headers=header)
     except Exception as e:
         logger.error(f"Error executing transaction: {str(e)}")
 
@@ -148,11 +152,13 @@ def background_task_wrapper(iota_payment,
                             to_identifier,
                             value,
                             request_strategy,
-                            bid_id):
+                            bid_id,
+                            header):
     asyncio.run(
         execute_transaction_and_update_bid(iota_payment,
                                            from_identifier,
                                            to_identifier,
                                            value,
                                            request_strategy,
-                                           bid_id))
+                                           bid_id,
+                                           header))

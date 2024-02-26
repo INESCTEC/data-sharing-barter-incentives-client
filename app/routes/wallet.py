@@ -117,7 +117,7 @@ def register_wallet_address(email: EmailStr,
         address = wallet_controller.get_address(email=email)
 
         header = get_header(db=db)
-        response = request_strategy.make_request(endpoint="/user/wallet-address",
+        response = request_strategy.make_request(endpoint="/user/wallet-address/",
                                                  method="post",
                                                  data={"wallet_address": address},
                                                  headers=header)
