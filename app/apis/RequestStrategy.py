@@ -80,7 +80,7 @@ class DataspaceStrategy(RequestStrategy):
         try:
             return self.conn.openapi_request(
                 external_access_url=os.environ['EXTERNAL_ACCESS_URL'],
-                external_connector_id=os.environ['EXTERNAL_CONNECTOR_ID'],
+                data_app_agent_id=os.environ['EXTERNAL_CONNECTOR_ID'],
                 api_version=api_version,
                 endpoint=endpoint,
                 headers=headers,
