@@ -86,7 +86,7 @@ async def session_bid(background_tasks: BackgroundTasks,
             response = request_strategy.make_request(endpoint="/market/bid/",
                                                      method="post",
                                                      headers=header,
-                                                     json=payload.model_dump())
+                                                     data=payload.model_dump())
 
             if response.status_code != 200:
                 return JSONResponse(content=response.json(),
@@ -136,9 +136,9 @@ async def execute_transaction_and_update_bid(iota_payment,
         data = {"tangle_msg_id": transaction.transactionId}
         iota_payment.wallet.destroy()
         await asyncio.to_thread(request_strategy.make_request,
-                                endpoint=f'api/market/bid/{bid_id}',
+                                endpoint=f'/market/bid/{bid_id}',
                                 method='patch',
-                                json=data)
+                                data=data)
     except Exception as e:
         logger.error(f"Error executing transaction: {str(e)}")
 
