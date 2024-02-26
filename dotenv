@@ -1,0 +1,25 @@
+# General Settings
+GITLAB_TOKEN=gitlab_access_token_here
+BASE_URL=http://localhost:8000
+PREDICO_BASE_URL=http://server:port
+USE_DATASPACE=True  # True = Tries to use DataSpace connector, False = Uses normal HTTP requests
+
+# Database Settings
+DB_NAME=user_db_name_here
+DB_USER=user_db_username_here
+DB_PASSWORD=user_db_password_here
+DB_HOST=predico-client_postgresql
+
+# Client Connector (My own Connector)
+MY_CONNECTOR_ACCESS_URL=my_connector_access_url_here
+MY_CONNECTOR_ID=my_connector_id_here
+MY_CONNECTOR_AGENT_ID=my_connector_agent_id_here
+MY_CONNECTOR_API_KEY=my_connector_admin_apikey_here
+API_VERSION=1.0.0
+# Metadata Broker
+METADATA_BROKER=connector_metadata_broker_url_here
+
+# External Connector
+EXTERNAL_ACCESS_URL=external_connector_access_url_here
+EXTERNAL_CONNECTOR_ID=external_connector_id_here
+EXTERNAL_AGENT_ID=external_agent_id_here
