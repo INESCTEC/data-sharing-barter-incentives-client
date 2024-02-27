@@ -1,9 +1,11 @@
 # PREDICO  (Data Sharing / Barter Incentives) client.
 
-A Dockerized interface for the Datamarket API.
+A Dockerized interface for the https://github.com/CPES-Power-and-Energy-Systems/data-sharing-barter-incentives-rest-api 
+Datamarket Server API.
 
 The objective of this API software package is to provide an in-between assistance in the communication between the Datamarket client and the Datamarket Server API. 
-Its goal is mainly to abstract the client from the complexity of the underlying Blockchain technologies required to interact with the platform.
+Its goal is mainly to abstract the client from the complexity of the underlying Blockchain and IDS Dataspace technologies required 
+to interact with the platform.
 
 The client wallet will still be located in the client's machine, but the client will not need to interact with it directly.
 

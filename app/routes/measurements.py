@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session
 
 from app.dependencies import get_db_session, get_request_strategy
 from app.helpers.helper import get_header

@@ -6,7 +6,6 @@ from fastapi.responses import JSONResponse
 from loguru import logger
 from payment.PaymentGateway.IOTAPayment.IOTAPaymentController import IOTAPaymentController
 from payment.exceptions.wallet_exceptions import WalletException
-from sqlalchemy.orm import Session
 
 from app.apis.RequestStrategy import RequestContext
 from app.dependencies import get_db_session, get_request_strategy

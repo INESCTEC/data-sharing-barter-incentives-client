@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from fastapi.responses import JSONResponse
 from loguru import logger
 from payment.PaymentGateway.IOTAPayment.IOTAPaymentController import IOTAPaymentController
-from sqlalchemy.orm import Session
 
 from app.apis.RequestStrategy import RequestContext
 from app.crud import add_token, cleanup_expired_tokens
