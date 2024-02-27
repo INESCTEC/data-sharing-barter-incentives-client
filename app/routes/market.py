@@ -19,106 +19,110 @@ retries = 3
 
 
 @router.get("/session")
-def session(db: Session = Depends(get_db_session),
-            request_strategy: RequestContext = Depends(get_request_strategy)):
-    try:
-        header = get_header(db=db)
-        response = request_strategy.make_request(endpoint="/market/session/",
-                                                 method="get",
-                                                 headers=header)
+def session(request_strategy: RequestContext = Depends(get_request_strategy)):
 
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    return JSONResponse(content=response.json(),
-                        status_code=200,
-                        media_type="application/json")
+    with get_db_session() as db:
+        try:
+            header = get_header(db=db)
+            response = request_strategy.make_request(endpoint="/market/session/",
+                                                     method="get",
+                                                     headers=header)
+
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        return JSONResponse(content=response.json(),
+                            status_code=200,
+                            media_type="application/json")
 
 
 @router.get("/session/bid/{market_session}")
 def session_bid(market_session: int,
-                db: Session = Depends(get_db_session),
                 request_strategy: RequestContext = Depends(get_request_strategy)):
-    try:
-        header = get_header(db=db)
-        response = request_strategy.make_request(endpoint=f"/market/bid/?market_session={market_session}",
-                                                 method="get",
-                                                 headers=header)
 
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    return JSONResponse(content=response.json(),
-                        status_code=200,
-                        media_type="application/json")
+    with get_db_session() as db:
+        try:
+
+            header = get_header(db=db)
+            response = request_strategy.make_request(endpoint=f"/market/bid/?market_session={market_session}",
+                                                     method="get",
+                                                     headers=header)
+
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        return JSONResponse(content=response.json(),
+                            status_code=200,
+                            media_type="application/json")
 
 
 @router.post("/session/bid")
 async def session_bid(background_tasks: BackgroundTasks,
                       payload: BidSchema,
-                      db: Session = Depends(get_db_session),
                       request_strategy: RequestContext = Depends(get_request_strategy)):
 
-    header = get_header(db=db)
+    with get_db_session() as db:
 
-    for _ in enumerate(range(retries)):
+        header = get_header(db=db)
+
+        for _ in enumerate(range(retries)):
+            try:
+                iota_payment = IOTAPaymentController(config=wallet_config())
+                break
+            except WalletException:
+                logger.warning("A wallet error occurred. Retrying...")
+                time.sleep(3)
+                continue
+        else:
+            raise HTTPException(status_code=400, detail="Failed to initialize wallet")
+
         try:
-            iota_payment = IOTAPaymentController(config=wallet_config())
-            break
-        except WalletException:
-            logger.warning("A wallet error occurred. Retrying...")
-            time.sleep(3)
-            continue
-    else:
-        raise HTTPException(status_code=400, detail="Failed to initialize wallet")
-
-    try:
-        response = request_strategy.make_request(endpoint="/market/wallet-address/",
-                                                 method="get",
-                                                 headers=header)
-
-        if response.status_code != 200:
-            return JSONResponse(content=response.json(),
-                                status_code=response.status_code,
-                                media_type="application/json")
-
-        market_wallet_address = response.json()['data']['wallet_address']
-        balance = iota_payment.get_balance(identifier=payload.email)['baseCoin']['available']
-
-        if int(balance) >= payload.max_payment:
-            response = request_strategy.make_request(endpoint="/market/bid/",
-                                                     method="post",
-                                                     headers=header,
-                                                     data=payload.model_dump())
+            response = request_strategy.make_request(endpoint="/market/wallet-address/",
+                                                     method="get",
+                                                     headers=header)
 
             if response.status_code != 200:
                 return JSONResponse(content=response.json(),
                                     status_code=response.status_code,
                                     media_type="application/json")
 
-            bid_id = response.json()['data']['id']
+            market_wallet_address = response.json()['data']['wallet_address']
+            balance = iota_payment.get_balance(identifier=payload.email)['baseCoin']['available']
 
-            # Add background task for transaction execution and bid update
-            background_tasks.add_task(
-                background_task_wrapper,
-                iota_payment,
-                payload.email,
-                market_wallet_address,
-                payload.max_payment,
-                request_strategy,
-                bid_id,
-                header
-            )
+            if int(balance) >= payload.max_payment:
+                response = request_strategy.make_request(endpoint="/market/bid/",
+                                                         method="post",
+                                                         headers=header,
+                                                         data=payload.model_dump())
 
-            return JSONResponse(content={"message": "Bid successfully posted. Transaction in progress..."},
-                                status_code=202,
-                                media_type="application/json")
-        else:
-            return JSONResponse(content={"error": "Insufficient balance"},
-                                status_code=400,
-                                media_type="application/json")
+                if response.status_code != 200:
+                    return JSONResponse(content=response.json(),
+                                        status_code=response.status_code,
+                                        media_type="application/json")
 
-    except Exception as e:
-        logger.error(f"Error while posting bid: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
+                bid_id = response.json()['data']['id']
+
+                # Add background task for transaction execution and bid update
+                background_tasks.add_task(
+                    background_task_wrapper,
+                    iota_payment,
+                    payload.email,
+                    market_wallet_address,
+                    payload.max_payment,
+                    request_strategy,
+                    bid_id,
+                    header
+                )
+
+                return JSONResponse(content={"message": "Bid successfully posted. Transaction in progress..."},
+                                    status_code=202,
+                                    media_type="application/json")
+            else:
+                return JSONResponse(content={"error": "Insufficient balance"},
+                                    status_code=400,
+                                    media_type="application/json")
+
+        except Exception as e:
+            logger.error(f"Error while posting bid: {str(e)}")
+            raise HTTPException(status_code=400, detail=str(e))
 
 
 async def execute_transaction_and_update_bid(iota_payment,

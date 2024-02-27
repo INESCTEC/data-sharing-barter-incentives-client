@@ -24,7 +24,7 @@ def get_token(db: Session) -> Optional[Token]:
     return query
 
 
-def cleanup_expired_tokens(db: Session):
+async def cleanup_expired_tokens(db: Session):
     # Calculate the current time
     current_time = datetime.utcnow()
     # Delete expired tokens from the Token table

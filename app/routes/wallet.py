@@ -110,17 +110,18 @@ def request_funds(email: EmailStr):
 
 @router.get("/register")
 def register_wallet_address(email: EmailStr,
-                            db: Session = Depends(get_db_session),
                             request_strategy: RequestContext = Depends(get_request_strategy)):
-    try:
-        wallet_controller = IOTAPaymentController(config=wallet_config())
-        address = wallet_controller.get_address(email=email)
 
-        header = get_header(db=db)
-        response = request_strategy.make_request(endpoint="/user/wallet-address/",
-                                                 method="post",
-                                                 data={"wallet_address": address},
-                                                 headers=header)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    return Response(content=json.dumps(response.json()), status_code=200, media_type="application/json")
+    with get_db_session() as db:
+        try:
+            wallet_controller = IOTAPaymentController(config=wallet_config())
+            address = wallet_controller.get_address(email=email)
+
+            header = get_header(db=db)
+            response = request_strategy.make_request(endpoint="/user/wallet-address/",
+                                                     method="post",
+                                                     data={"wallet_address": address},
+                                                     headers=header)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        return Response(content=json.dumps(response.json()), status_code=200, media_type="application/json")

@@ -3,7 +3,8 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-
+from contextlib import asynccontextmanager
+from contextlib import contextmanager
 from app.apis.RequestStrategy import RequestContext, RequestsStrategy, DataspaceStrategy
 
 db_username = os.getenv("DB_USERNAME", "predico")
@@ -18,6 +19,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
+@contextmanager
 def get_db_session():
     db = SessionLocal()
     try:

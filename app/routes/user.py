@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from fastapi.responses import JSONResponse
 from loguru import logger
 from payment.PaymentGateway.IOTAPayment.IOTAPaymentController import IOTAPaymentController
 from sqlalchemy.orm import Session
 
 from app.apis.RequestStrategy import RequestContext
-from app.crud import add_token
+from app.crud import add_token, cleanup_expired_tokens
 from app.dependencies import get_request_strategy, get_db_session
 from app.helpers.helper import wallet_config
 from app.schemas.schemas import UserLoginSchema, UserRegistrationSchema
@@ -14,21 +14,22 @@ router = APIRouter()
 
 
 @router.post("/login")
-def login(credentials: UserLoginSchema,
-          db: Session = Depends(get_db_session),
-          request_strategy: RequestContext = Depends(get_request_strategy)):
+async def login(credentials: UserLoginSchema,
+                background_tasks: BackgroundTasks,
+                request_strategy: RequestContext = Depends(get_request_strategy)):
 
     response = request_strategy.make_request(endpoint="/token",
                                              method="post",
                                              data=credentials.model_dump())
-
-    if response.status_code == status.HTTP_200_OK:
-        # update the token in the database
-        logger.debug(f"Adding token to database: {response.json()}")
-        add_token(db=db, token=response.json()['access'])
-        return JSONResponse(content=response.json(), status_code=200, media_type="application/json")
-    logger.error(f"Failed to login: {response.json()}")
-    raise HTTPException(status_code=response.status_code, detail="Failed to login")
+    with get_db_session() as db:
+        if response.status_code == status.HTTP_200_OK:
+            # update the token in the database
+            logger.debug(f"Adding token to database: {response.json()}")
+            add_token(db=db, token=response.json()['access'])
+            background_tasks.add_task(cleanup_expired_tokens, db)
+            return JSONResponse(content=response.json(), status_code=200, media_type="application/json")
+        logger.error(f"Failed to login: {response.json()}")
+        raise HTTPException(status_code=response.status_code, detail="Failed to login")
 
 
 @router.post("/register")
