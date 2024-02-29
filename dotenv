@@ -5,10 +5,10 @@ PREDICO_BASE_URL=http://server:port
 USE_DATASPACE=True  # True = Tries to use DataSpace connector, False = Uses normal HTTP requests
 
 # Database Settings
-DB_NAME=user_db_name_here
-DB_USER=user_db_username_here
-DB_PASSWORD=user_db_password_here
-DB_HOST=predico-client_postgresql
+POSTGRES_DB=user_db_name_here
+POSTGRES_USER=user_db_username_here
+POSTGRES_PASSWORD=user_db_password_here
+POSTGRES_HOST=predico-client_postgresql
 
 # Client Connector (My own Connector)
 MY_CONNECTOR_ACCESS_URL=my_connector_access_url_here
