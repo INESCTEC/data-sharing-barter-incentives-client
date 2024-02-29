@@ -42,10 +42,19 @@ const Bids = () => {
   
   
   const columns = [
-    { field: "id", headerName: "ID" },
     {
       field: "market_session",
       headerName: "Market Session",
+      flex: 1,
+    },
+    {
+      field: "resource",
+      headerName: "Resource",
+      flex: 1,
+    },
+    {
+      field: "confirmed",
+      headerName: "Confirmed",
       flex: 1,
     },
     {
@@ -60,7 +69,7 @@ const Bids = () => {
     },
     {
       field: "bid_price",
-      headerName: "Email",
+      headerName: "Bid price",
       flex: 1,
     },
     {
@@ -96,7 +105,7 @@ const Bids = () => {
   
   return (
     <Box m="20px">
-      <Header title="TEAM" subtitle="Managing the Team Members"/>
+      <Header title="Bids" subtitle="List of the bids made to the market"/>
       <Box
         m="40px 0 0 0"
         height="75vh"
