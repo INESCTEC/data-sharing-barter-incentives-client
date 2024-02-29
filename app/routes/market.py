@@ -34,6 +34,22 @@ def session(request_strategy: RequestContext = Depends(get_request_strategy)):
                             media_type="application/json")
 
 
+@router.get("/session/balance")
+def session_balance(request_strategy: RequestContext = Depends(get_request_strategy)):
+
+    with get_db_session() as db:
+        try:
+            header = get_header(db=db)
+            response = request_strategy.make_request(endpoint="/market/session-balance/",
+                                                     method="get",
+                                                     headers=header)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        return JSONResponse(content=response.json(),
+                            status_code=200,
+                            media_type="application/json")
+
+
 @router.get("/session/bid/{market_session}")
 def session_bid(market_session: int,
                 request_strategy: RequestContext = Depends(get_request_strategy)):
