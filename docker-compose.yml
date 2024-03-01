@@ -19,10 +19,8 @@ services:
     image: postgres:12.0-alpine
     container_name: predico-client_postgresql
     restart: always
-    environment:
-      POSTGRES_DB: predico
-      POSTGRES_USER: predico
-      POSTGRES_PASSWORD: predico
+    env_file:
+      - .env
     volumes:
       - postgresql-data:/var/lib/postgresql/data
 
