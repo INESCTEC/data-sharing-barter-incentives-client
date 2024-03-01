@@ -18,19 +18,24 @@ import axios from "axios";
 import numeral from 'numeral';
 import CircularProgress from '@mui/material/CircularProgress';
 import {mockData2} from "../../data/mockData2";
+import moment from "moment";
 
 const Dashboard = () => {
   
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   
-  const [resources, setResources] = useState(null);
+  const [email, setEmail] = useState('andre.f.garcia@inesctec.pt');
+  const [requestFundloading, setRequestFundLoading] = useState(false);
+  const [resources, setResources] = useState([]);
   const [balance, setBalance] = useState(null);
   const [loadingResources, setLoadingResources] = useState(false);
   const [totalPayment, setTotalPayment] = useState(0);
   const [marketBalance, setMarketBalance] = useState(null);
   const [totalRevenue, setTotalRevenue] = useState(null);
   const [sessions, setSessions] = useState([]);
+  const [forecast, setForecast] = useState([]);
+  const [transactions, setTransactions] = useState([]);
   
   // const getSessions = async () => {
   //   axios.get('http://localhost:8000/market/session').then((response) => {
@@ -45,25 +50,144 @@ const Dashboard = () => {
   //   })
   // }
   
+  const fundWallet = async () => {
+    setRequestFundLoading(true);
+    axios.get("http://localhost:8000/wallet/request_funds?email=${email}/")
+      .then((response) => {
+        if (response.status === 200) {
+          console.log(response);
+          setRequestFundLoading(false);
+        }
+      })
+      .catch((error) => {
+        console.error("Error requesting funds:", error);
+        setRequestFundLoading(false);
+      });
+  }
+  const getTransactions = async () => {
+    axios.get('http://localhost:8000/market/session/transactions').then((response) => {
+      if (response.status === 200 && response.data.data) {
+        const transactions = response.data.data;
+        // order transactions
+        transactions.sort((a, b) => {
+          return new Date(b.registered_at) - new Date(a.registered_at);
+        });
+        setTransactions(transactions);
+      }
+      
+      
+    })
+  };
+  const getForecast = async () => {
+    const today = moment(); // Use moment() to get the current date
+    const weekAgo = moment(today).subtract(7, 'days');
+    
+    // Format dates to ISO 8601 format
+    const todayFormatted = today.format('YYYY-MM-DDTHH:mm:ss[Z]');
+    const weekAgoFormatted = weekAgo.format('YYYY-MM-DDTHH:mm:ss[Z]');
+    console.log(todayFormatted, weekAgoFormatted);
+    
+    try {
+      const resourcesResponse = await axios.get('http://localhost:8000/user/resource');
+      
+      if (resourcesResponse.status === 200) {
+        const resources = resourcesResponse.data.data;
+        
+        // Array to store all forecast promises
+        const forecastPromises = [];
+        
+        for (const resource of resources) {
+          const url = `http://localhost:8000/data/forecast/${weekAgoFormatted}/${todayFormatted}/${resource.id}`;
+          
+          // Push the promise to the array
+          forecastPromises.push(
+            axios.get(url)
+              .then((forecastResponse) => {
+                if (forecastResponse.status === 200 && forecastResponse.data.data) {
+                  const forecastData = {};
+                  
+                  // Group forecast data by resource_name
+                  forecastResponse.data.data.forEach(item => {
+                    const resourceName = item.resource_name;
+                    const formattedDate = moment(item.datetime).toISOString();
+                    
+                    if (!forecastData[resourceName]) {
+                      forecastData[resourceName] = [];
+                    }
+                    
+                    forecastData[resourceName].push({
+                      x: formattedDate,
+                      y: item.value
+                    });
+                  });
+                  // Return the final forecast data
+                  return Object.keys(forecastData).map(resourceName => ({
+                    id: resourceName,
+                    data: forecastData[resourceName]
+                  }));
+                } else {
+                  console.error("Error fetching forecast data:", forecastResponse.data);
+                  return []; // Return an empty array if data is not available
+                }
+              })
+              .catch((error) => {
+                console.error("Error fetching forecast:", error);
+                return []; // Return an empty array if there's an error
+              })
+          );
+        }
+        
+        // Wait for all forecast promises to resolve
+        const allForecasts = await Promise.all(forecastPromises);
+        
+        // Flatten the array of forecasts
+        const finalForecast = allForecasts.flat();
+        
+        console.log(finalForecast);
+        setForecast(finalForecast);
+      }
+    } catch (error) {
+      console.error("Error fetching resources:", error);
+    }
+  }
+  
+  
   const getMarketBalance = async () => {
     axios.get('http://localhost:8000/market/session/balance')
       .then((response) => {
         if (response.status === 200) {
           const data = response.data.data;
-          console.log(data)
-          setMarketBalance(data);
-          const totalPayment = data.reduce((sum, item) => sum + item.session_payment, 0);
-          const totalRevenue = data.reduce((sum, item) => sum + item.session_revenue, 0);
-          setTotalPayment(totalPayment);
-          setTotalRevenue(totalRevenue);
+          if (data) {
+            const totalPayment = data.reduce((sum, item) => sum + item.session_payment, 0);
+            const totalRevenue = data.reduce((sum, item) => sum + item.session_revenue, 0);
+            data.forEach(item => {
+              item.session_payment = item.session_payment / 1000000;
+              item.session_revenue = item.session_revenue / 1000000;
+              item.session_deposit = item.session_deposit / 1000000;
+              item.session_balance = item.session_balance / 1000000;
+            });
+            
+            console.log(data);
+            setMarketBalance(data);
+            setTotalPayment(totalPayment);
+            setTotalRevenue(totalRevenue);
+          } else {
+            setTotalRevenue(0)
+            setTotalPayment(0)
+            setMarketBalance([]);
+            console.error("Data is null or undefined.");
+          }
         }
       })
+      .catch((error) => {
+        console.error("Error fetching market balance:", error);
+      });
   }
   const getResources = async () => {
     setLoadingResources(true);
     axios.get('http://localhost:8000/user/resource').then((response) => {
       if (response.data.code === 200) {
-        setResources(response.data.data.length);
+        setResources(response.data.data);
       }
       setLoadingResources(false);
     })
@@ -84,7 +208,8 @@ const Dashboard = () => {
     getResources().then();
     getBalance().then();
     getMarketBalance().then();
-    
+    getForecast().then();
+    getTransactions().then();
     // const intervalId = setInterval(async () => {
     //   await getResources();
     //   await getBalance();
@@ -109,9 +234,10 @@ const Dashboard = () => {
               fontWeight: "bold",
               padding: "10px 20px",
             }}
+            onClick={fundWallet}
           >
             <SavingsIcon sx={{ mr: "10px" }}/>
-            Fund wallet
+            { requestFundloading ? 'Requesting...' : 'Fund wallet'}
           </Button>
         </Box>
       </Box>
@@ -134,7 +260,7 @@ const Dashboard = () => {
             <CircularProgress color="success"/>
           ) : (
             <StatBox
-              title={resources}
+              title={resources ? resources.length : 0}
               subtitle="Resources"
               icon={
                 <WindPowerIcon
@@ -154,7 +280,7 @@ const Dashboard = () => {
         >
           {totalRevenue ? (
             <StatBox
-              title={numeral(totalRevenue).format('0,0')}
+              title={(totalRevenue / 1000000).toFixed(3)}
               subtitle="Total revenue (Shimmer)"
               icon={
                 <SentimentSatisfiedAltIcon
@@ -175,7 +301,7 @@ const Dashboard = () => {
         >
           {totalPayment ? (
             <StatBox
-              title={numeral(totalPayment).format('0,0')}
+              title={(totalPayment / 1000000).toFixed(3)}
               subtitle="Total payment (Shimmer)"
               icon={
                 <SentimentVeryDissatisfiedIcon
@@ -196,7 +322,7 @@ const Dashboard = () => {
         >
           {balance !== null ? (
             <StatBox
-              title={numeral(balance).format('0,0')}
+              title={(balance / 1000000).toFixed(3)}
               subtitle="Wallet balance (Shimmer)"
               icon={
                 <WalletIcon
@@ -241,7 +367,7 @@ const Dashboard = () => {
             </Box>
           </Box>
           <Box height="250px" m="-20px 0 0 0">
-            <LineChart isDashboard={true}/>
+            <LineChart data={forecast}/>
           </Box>
         </Box>
         <Box
@@ -262,9 +388,9 @@ const Dashboard = () => {
               Recent Market Transactions
             </Typography>
           </Box>
-          {mockTransactions.map((transaction, i) => (
+          {transactions.map((transaction, i) => (
             <Box
-              key={`${transaction.txId}-${i}`}
+              key={`${transaction.registered_at}`}
               display="flex"
               justifyContent="space-between"
               alignItems="center"
@@ -277,19 +403,21 @@ const Dashboard = () => {
                   variant="h5"
                   fontWeight="600"
                 >
-                  {transaction.txId}
+                  {transaction.resource_name}
                 </Typography>
                 <Typography color={colors.grey[100]}>
-                  {transaction.user}
+                  {transaction.transaction_type === 'transfer_in' ? 'Deposit to Market' :
+                    transaction.transaction_type === 'payment' ? 'Payment to Market' :
+                      transaction.transaction_type === 'revenue' ? 'Revenue' : 'Other'}
                 </Typography>
               </Box>
-              <Box color={colors.grey[100]}>{transaction.date}</Box>
+              <Box color={colors.grey[100]}>{ moment(transaction.registered_at).format("YYYY-MM-DD HH:mm:ss")}</Box>
               <Box
-                backgroundColor={colors.greenAccent[500]}
+                backgroundColor={transaction.amount < 0 ? colors.redAccent[500] : colors.greenAccent[500]}
                 p="5px 10px"
                 borderRadius="4px"
               >
-                ${transaction.cost}
+                {(transaction.amount / 1000).toFixed(3)}
               </Box>
             </Box>
           ))}
@@ -333,7 +461,7 @@ const Dashboard = () => {
             fontWeight="600"
             sx={{ padding: "30px 30px 0 30px" }}
           >
-            Session Balance by Resource
+            Aggregated balance by resource
           </Typography>
           {marketBalance && marketBalance.length > 0 ? (
             <Box height="450px" mt="-20px">

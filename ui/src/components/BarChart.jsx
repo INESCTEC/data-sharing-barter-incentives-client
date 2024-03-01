@@ -7,7 +7,6 @@ const BarChart = ({ isDashboard = false , data}) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   
-  console.log(data);
   const mergedData = data.reduce((acc, curr) => {
     const existingItemIndex = acc.findIndex(item => item.resource === curr.resource);
     if (existingItemIndex !== -1) {
@@ -20,7 +19,6 @@ const BarChart = ({ isDashboard = false , data}) => {
     }
     return acc;
   }, []);
-  console.log(mergedData);
   // Extract unique market_session values
   // const marketSessions = [...new Set(data.map(item => item.market_session))];
   // const keys = marketSessions.map(session => `Session ${session}`);

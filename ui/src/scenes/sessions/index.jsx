@@ -16,7 +16,6 @@ const Sessions = (sessionsData) => {
   
   useEffect(() => {
     axios.get('http://localhost:8000/market/session').then((response) => {
-      console.log(response);
       if (response.status === 200 && response.data.data) {
         // Sort the data by the 'open_ts' attribute
         const sortedSessions = response.data.data.sort((a, b) => {
@@ -69,26 +68,7 @@ const Sessions = (sessionsData) => {
       headerName: "Market price",
       flex: 1,
     },
-    {
-      field: "b_min",
-      headerName: "B Min",
-      flex: 1,
-    },
-    {
-      field: "b_max",
-      headerName: "B Max",
-      flex: 1,
-    },
-    {
-      field: "n_price_steps",
-      headerName: "Price steps",
-      flex: 1,
-    },
-    {
-      field: "delta",
-      headerName: "Delta",
-      flex: 1,
-    },
+
   ];
 
   return (

@@ -181,3 +181,20 @@ def background_task_wrapper(iota_payment,
                                            request_strategy,
                                            bid_id,
                                            header))
+
+
+@router.get("/session/transactions")
+def session_transactions(request_strategy: RequestContext = Depends(get_request_strategy)):
+
+    with get_db_session() as db:
+        try:
+            header = get_header(db=db)
+            response = request_strategy.make_request(endpoint="/market/session-transactions/",
+                                                     method="get",
+                                                     headers=header)
+
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        return JSONResponse(content=response.json(),
+                            status_code=200,
+                            media_type="application/json")

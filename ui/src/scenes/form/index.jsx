@@ -13,7 +13,7 @@ const Form = () => {
 
   return (
     <Box m="20px">
-      <Header title="CREATE USER" subtitle="Create a New User Profile" />
+      <Header title="Create account" subtitle="Create a New User wallet account and registration in PREDICO" />
 
       <Formik
         onSubmit={handleFormSubmit}
