@@ -51,7 +51,7 @@ class BidSchema(BaseModel):
     market_session: int
     bid_price: int
     max_payment: int
-    resource: int
+    resource: str
     gain_func: str
 
     # bid_price: float
