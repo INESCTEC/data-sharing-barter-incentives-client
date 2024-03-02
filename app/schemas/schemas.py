@@ -54,12 +54,15 @@ class BidSchema(BaseModel):
     resource: int
     gain_func: str
 
-    # @field_validator("price", "max_payment")
-    # def check_price_and_max_payment(cls, value):
-    #     if value > 10000000:
-    #         raise ValueError("Price and max payment cannot be greater than 10,000,000")
-    #     return value
+    # bid_price: float
+    # max_payment: float
+    # @field_validator("bid_price")
+    # def check_bid_price(cls, value):
+    #     return int(value * 1000000)
 
+    # @field_validator("max_payment")
+    # def check_max_payment(cls, value):
+    #     return int(value * 1000000)
 
 class UserRole(str, Enum):
     BUYER = "buyer"
