@@ -20,6 +20,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import {mockData2} from "../../data/mockData2";
 import moment from "moment";
 
+
 const Dashboard = () => {
   
   const theme = useTheme();
@@ -30,12 +31,13 @@ const Dashboard = () => {
   const [resources, setResources] = useState([]);
   const [balance, setBalance] = useState(null);
   const [loadingResources, setLoadingResources] = useState(false);
-  const [totalPayment, setTotalPayment] = useState(0);
+  const [totalPayment, setTotalPayment] = useState(null);
   const [marketBalance, setMarketBalance] = useState(null);
   const [totalRevenue, setTotalRevenue] = useState(null);
   const [sessions, setSessions] = useState([]);
   const [forecast, setForecast] = useState([]);
   const [transactions, setTransactions] = useState([]);
+  const [measurements, setMeasurements] = useState(null);
   
   // const getSessions = async () => {
   //   axios.get('http://localhost:8000/market/session').then((response) => {
@@ -50,12 +52,27 @@ const Dashboard = () => {
   //   })
   // }
   
+  const getMeasurements = async () => {
+    // const daysPast = 4;
+    // const pastDate = moment().subtract(daysPast, 'days').utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
+    // const futureDate = moment().add(daysPast, 'days').utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
+    //
+    // console.log(pastDate, futureDate);
+    // resources.forEach(resource => {
+    //   let url = `http://localhost:8000/data/raw-data/${pastDate}/${futureDate}/${resource.id}`;
+    //   console.log(url);
+    //   axios.get(url).then((response) => {
+    //     setMeasurements(response.data.data);
+    //     console.log()
+    //   })
+    // });
+    
+  }
   const fundWallet = async () => {
     setRequestFundLoading(true);
     axios.get("http://localhost:8000/wallet/request_funds?email=${email}/")
       .then((response) => {
         if (response.status === 200) {
-          console.log(response);
           setRequestFundLoading(false);
         }
       })
@@ -120,11 +137,13 @@ const Dashboard = () => {
                       y: item.value
                     });
                   });
+                  setForecast(forecastData);
                   // Return the final forecast data
-                  return Object.keys(forecastData).map(resourceName => ({
-                    id: resourceName,
-                    data: forecastData[resourceName]
-                  }));
+                  // console.log(forecastData);
+                  // return Object.keys(forecastData).map(resourceName => ({
+                  //   id: resourceName,
+                  //   data: forecastData[resourceName]
+                  // }));
                 } else {
                   console.error("Error fetching forecast data:", forecastResponse.data);
                   return []; // Return an empty array if data is not available
@@ -142,8 +161,6 @@ const Dashboard = () => {
         
         // Flatten the array of forecasts
         const finalForecast = allForecasts.flat();
-        
-        console.log(finalForecast);
         setForecast(finalForecast);
       }
     } catch (error) {
@@ -167,7 +184,6 @@ const Dashboard = () => {
               item.session_balance = item.session_balance / 1000000;
             });
             
-            console.log(data);
             setMarketBalance(data);
             setTotalPayment(totalPayment);
             setTotalRevenue(totalRevenue);
@@ -178,6 +194,9 @@ const Dashboard = () => {
             console.error("Data is null or undefined.");
           }
         }
+        // setTotalRevenue(0)
+        // setTotalPayment(0)
+        // setMarketBalance([]);
       })
       .catch((error) => {
         console.error("Error fetching market balance:", error);
@@ -188,7 +207,20 @@ const Dashboard = () => {
     axios.get('http://localhost:8000/user/resource').then((response) => {
       if (response.data.code === 200) {
         setResources(response.data.data);
+        const daysPast = 4;
+        const pastDate = moment().subtract(daysPast, 'days').utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
+        const futureDate = moment().add(daysPast, 'days').utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
+        
+        response.data.data.forEach(resource => {
+          let url = `http://localhost:8000/data/raw-data/${pastDate}/${futureDate}/${resource.id}`;
+          console.log(url);
+          axios.get(url).then((response) => {
+            console.log(response);
+            setMeasurements(response.data.data);
+          })
+        })
       }
+      
       setLoadingResources(false);
     })
   };
@@ -205,11 +237,15 @@ const Dashboard = () => {
   
   useEffect(() => {
     // getSessions().then();
+    console.log("entering get resources");
     getResources().then();
+    console.log("entering set balance");
     getBalance().then();
+    console.log("entering get market balance")
     getMarketBalance().then();
     getForecast().then();
     getTransactions().then();
+    getMeasurements().then();
     // const intervalId = setInterval(async () => {
     //   await getResources();
     //   await getBalance();
@@ -237,7 +273,7 @@ const Dashboard = () => {
             onClick={fundWallet}
           >
             <SavingsIcon sx={{ mr: "10px" }}/>
-            { requestFundloading ? 'Requesting...' : 'Fund wallet'}
+            {requestFundloading ? 'Requesting...' : 'Fund wallet'}
           </Button>
         </Box>
       </Box>
@@ -278,7 +314,7 @@ const Dashboard = () => {
           alignItems="center"
           justifyContent="center"
         >
-          {totalRevenue ? (
+          {totalRevenue === 0 || totalRevenue > 0 ? (
             <StatBox
               title={(totalRevenue / 1000000).toFixed(3)}
               subtitle="Total revenue (Shimmer)"
@@ -299,7 +335,7 @@ const Dashboard = () => {
           alignItems="center"
           justifyContent="center"
         >
-          {totalPayment ? (
+          {totalPayment === 0 || totalPayment > 0 ? (
             <StatBox
               title={(totalPayment / 1000000).toFixed(3)}
               subtitle="Total payment (Shimmer)"
@@ -338,7 +374,7 @@ const Dashboard = () => {
         {/* ROW 2 */}
         <Box
           gridColumn="span 8"
-          gridRow="span 2"
+          gridRow="span 3"
           backgroundColor={colors.primary[400]}
         >
           <Box
@@ -354,7 +390,7 @@ const Dashboard = () => {
                 fontWeight="600"
                 color={colors.grey[100]}
               >
-                Forecasts received
+                Resource measurements
               </Typography>
             
             </Box>
@@ -367,12 +403,12 @@ const Dashboard = () => {
             </Box>
           </Box>
           <Box height="250px" m="-20px 0 0 0">
-            <LineChart data={forecast}/>
+            { measurements ? ( <LineChart data={measurements}/>) : ''}
           </Box>
         </Box>
         <Box
           gridColumn="span 4"
-          gridRow="span 5"
+          gridRow="span 6"
           backgroundColor={colors.primary[400]}
           overflow="auto"
         >
@@ -411,13 +447,13 @@ const Dashboard = () => {
                       transaction.transaction_type === 'revenue' ? 'Revenue' : 'Other'}
                 </Typography>
               </Box>
-              <Box color={colors.grey[100]}>{ moment(transaction.registered_at).format("YYYY-MM-DD HH:mm:ss")}</Box>
+              <Box color={colors.grey[100]}>{moment(transaction.registered_at).format("YYYY-MM-DD HH:mm:ss")}</Box>
               <Box
                 backgroundColor={transaction.amount < 0 ? colors.redAccent[500] : colors.greenAccent[500]}
                 p="5px 10px"
                 borderRadius="4px"
               >
-                {(transaction.amount / 1000).toFixed(3)}
+                {(transaction.amount / 1000000).toFixed(2)}
               </Box>
             </Box>
           ))}
@@ -461,24 +497,14 @@ const Dashboard = () => {
             fontWeight="600"
             sx={{ padding: "30px 30px 0 30px" }}
           >
-            Aggregated balance by resource
+            Aggregated balance by session
           </Typography>
-          {marketBalance && marketBalance.length > 0 ? (
-            <Box height="450px" mt="-20px">
-              <BarChart isDashboard={true} data={marketBalance}/>
-            </Box>
-          ) : (
-            <Box
-              display="flex"
-              flexDirection="column"
-              alignItems="center"
-              justifyContent="center"
-              gridColumn="span 8"
-              gridRow="span 3"
-            >
-              <CircularProgress color="success"/>
-            </Box>
-          )}
+          
+          <Box>
+            <BarChart data={marketBalance}/>
+          </Box>
+        
+        
         </Box>
       
       

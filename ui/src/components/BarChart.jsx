@@ -1,146 +1,53 @@
-import { useTheme } from "@mui/material";
-import { ResponsiveBar } from "@nivo/bar";
-import { tokens } from "../theme";
-// import { mockBarData as data } from "../data/mockData";
+import React from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-const BarChart = ({ isDashboard = false , data}) => {
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
+const SimpleBarChart = (data) => {
+  // "data": [
+  //   {
+  //     "market_session": 1,
+  //     "user": "9418ffec-bc29-47aa-a000-46b66e510c06",
+  //     "resource": "e908de01-42cc-4b34-b250-bdf4fcb0c93c",
+  //     "session_deposit": 16000000.0,
+  //     "session_balance": 16000000.0,
+  //     "session_payment": 0.0,
+  //     "session_revenue": 0.0,
+  //     "registered_at": "2024-03-03T16:19:13.152085Z"
+  //   }
+  // ]
   
-  const mergedData = data.reduce((acc, curr) => {
-    const existingItemIndex = acc.findIndex(item => item.resource === curr.resource);
-    if (existingItemIndex !== -1) {
-      acc[existingItemIndex].session_deposit += curr.session_deposit;
-      acc[existingItemIndex].session_balance += curr.session_balance;
-      acc[existingItemIndex].session_payment += curr.session_payment;
-      acc[existingItemIndex].session_revenue += curr.session_revenue;
-    } else {
-      acc.push({ ...curr }); // Ensure we're pushing a new object
-    }
-    return acc;
-  }, []);
-  // Extract unique market_session values
-  // const marketSessions = [...new Set(data.map(item => item.market_session))];
-  // const keys = marketSessions.map(session => `Session ${session}`);
+  // const data = [
+  //   { name: 'Page A', uv: 4000, pv: 2400, amt: 2400 },
+  //   { name: 'Page B', uv: 3000, pv: 1398, amt: 2210 },
+  //   { name: 'Page C', uv: 2000, pv: 9800, amt: 2290 },
+  //   { name: 'Page D', uv: 2780, pv: 3908, amt: 2000 },
+  //   { name: 'Page E', uv: 1890, pv: 4800, amt: 2181 },
+  //   { name: 'Page F', uv: 2390, pv: 3800, amt: 2500 },
+  //   { name: 'Page G', uv: 3490, pv: 4300, amt: 2100 },
+  // ];
+  
   return (
-    <ResponsiveBar
-      data={mergedData}
-      theme={{
-        // added
-        axis: {
-          domain: {
-            line: {
-              stroke: colors.grey[100],
-            },
-          },
-          legend: {
-            text: {
-              fill: colors.grey[100],
-            },
-          },
-          ticks: {
-            line: {
-              stroke: colors.grey[100],
-              strokeWidth: 1,
-            },
-            text: {
-              fill: colors.grey[100],
-            },
-          },
-        },
-        legends: {
-          text: {
-            fill: colors.grey[100],
-          },
-        },
-      }}
-
-      keys={["session_deposit", "session_balance", "session_payment", "session_revenue"]}
-      indexBy="resource"
-      margin={{ top: 50, right: 130, bottom: 50, left: 60 }}
-      padding={0.3}
-      valueScale={{ type: "linear" }}
-      indexScale={{ type: "band", round: true }}
-      colors={{ scheme: "nivo" }}
-      defs={[
-        {
-          id: "dots",
-          type: "patternDots",
-          background: "inherit",
-          color: "#38bcb2",
-          size: 4,
-          padding: 1,
-          stagger: true,
-        },
-        {
-          id: "lines",
-          type: "patternLines",
-          background: "inherit",
-          color: "#eed312",
-          rotation: -45,
-          lineWidth: 6,
-          spacing: 10,
-        },
-      ]}
-      borderColor={{
-        from: "color",
-        modifiers: [["darker", "1.6"]],
-      }}
-      axisTop={null}
-      axisRight={null}
-      axisBottom={{
-        tickSize: 5,
-        tickPadding: 5,
-        tickRotation: 0,
-        legend: "resources",
-        legendPosition: "start",
-        legendOffset: 15,
-      }}
-      axisLeft={{
-        tickSize: 5,
-        tickPadding: 5,
-        tickRotation: 40,
-        legend: "Shimmer",
-        legendPosition: "start",
-        legendOffset: -40,
-      }}
-      enableLabel={false}
-      labelSkipWidth={12}
-      labelSkipHeight={12}
-      labelTextColor={{
-        from: "color",
-        modifiers: [["darker", 1.6]],
-      }}
-      legends={[
-        {
-          dataFrom: "keys",
-          anchor: "bottom-right",
-          direction: "column",
-          justify: false,
-          translateX: 120,
-          translateY: 0,
-          itemsSpacing: 2,
-          itemWidth: 115,
-          itemHeight: 20,
-          itemDirection: "left-to-right",
-          itemOpacity: 0.85,
-          symbolSize: 20,
-          effects: [
-            {
-              on: "hover",
-              style: {
-                itemOpacity: 1,
-              },
-            },
-          ],
-        },
-      ]}
-      role="application"
-      barAriaLabel={function (e) {
-        return e.id + ": " + e.formattedValue + " in country: " + e.indexValue;
-      }}
-    />
+    <ResponsiveContainer width="100%" height={400}>
+      <BarChart
+        data={data.data}
+        margin={{
+          top: 5,
+          right: 30,
+          left: 20,
+          bottom: 5,
+        }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="market_session" />
+        <YAxis />
+        <Tooltip />
+        <Legend />
+        <Bar dataKey="session_deposit" fill="#FF8C00" />
+        <Bar dataKey="session_balance" fill="#82ca9d" />
+        <Bar dataKey="session_payment" fill="#EE4B2B" />
+        <Bar dataKey="session_revenue" fill="#85BB65" />
+      </BarChart>
+    </ResponsiveContainer>
   );
 };
 
-export default BarChart;
+export default SimpleBarChart;

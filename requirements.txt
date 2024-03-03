@@ -29,3 +29,5 @@ uvicorn==0.23.2
 sqlalchemy~=2.0.25
 git+https://gitlab.inesctec.pt/valorem/payment-service.git
 git+https://github.com/CPES-Power-and-Energy-Systems/tsg-client
+uuid==1.30
+

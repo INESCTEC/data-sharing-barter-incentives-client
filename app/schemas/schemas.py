@@ -2,7 +2,7 @@ import json
 import os
 from enum import Enum
 from typing import List
-
+import uuid
 from pydantic import BaseModel, Field, EmailStr, field_validator
 
 
@@ -54,11 +54,12 @@ class BidSchema(BaseModel):
     resource: str
     gain_func: str
 
-    # bid_price: float
-    # max_payment: float
-    # @field_validator("bid_price")
-    # def check_bid_price(cls, value):
-    #     return int(value * 1000000)
+    @field_validator("resource")
+    def validate_resource(cls, value):
+        if uuid.UUID(value):
+            return value
+        else:
+            raise ValueError("Invalid resource id")
 
     # @field_validator("max_payment")
     # def check_max_payment(cls, value):
