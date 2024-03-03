@@ -390,7 +390,7 @@ const Dashboard = () => {
                 fontWeight="600"
                 color={colors.grey[100]}
               >
-                Forecasts received
+                Resource measurements
               </Typography>
             
             </Box>

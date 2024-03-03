@@ -30,7 +30,7 @@ const TimeSeriesLineChart = (data) => {
       >
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="datetime" />
-        <YAxis />
+        <YAxis label={{ value: 'Average Power (kW)', angle: -90, position: 'insideLeft' }} />
         <Tooltip />
         <Legend />
         <Line type="monotone" dataKey="value" stroke="#8884d8" activeDot={{ r: 8 }} />
