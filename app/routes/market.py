@@ -1,6 +1,6 @@
 import asyncio
 import time
-
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from fastapi.responses import JSONResponse
 from loguru import logger
@@ -35,12 +35,15 @@ def session(request_strategy: RequestContext = Depends(get_request_strategy)):
 
 
 @router.get("/session/balance")
-def session_balance(request_strategy: RequestContext = Depends(get_request_strategy)):
+def session_balance(by_resource: Optional[bool] = True,
+                    request_strategy: RequestContext = Depends(get_request_strategy)):
 
     with get_db_session() as db:
         try:
             header = get_header(db=db)
-            response = request_strategy.make_request(endpoint="/market/session-balance/",
+            # "market/session-balance/?balance_by_resource=false'"
+            endpoint = f"/market/session-balance/?balance_by_resource={by_resource}"
+            response = request_strategy.make_request(endpoint=endpoint,
                                                      method="get",
                                                      headers=header)
         except Exception as e:

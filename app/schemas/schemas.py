@@ -2,7 +2,7 @@ import json
 import os
 from enum import Enum
 from typing import List
-
+import uuid
 from pydantic import BaseModel, Field, EmailStr, field_validator
 
 
@@ -51,14 +51,15 @@ class BidSchema(BaseModel):
     market_session: int
     bid_price: int
     max_payment: int
-    resource: int
+    resource: str
     gain_func: str
 
-    # @field_validator("price", "max_payment")
-    # def check_price_and_max_payment(cls, value):
-    #     if value > 10000000:
-    #         raise ValueError("Price and max payment cannot be greater than 10,000,000")
-    #     return value
+    @field_validator("resource")
+    def validate_resource(cls, value):
+        if uuid.UUID(value):
+            return value
+        else:
+            raise ValueError("Invalid resource id")
 
 
 class UserRole(str, Enum):

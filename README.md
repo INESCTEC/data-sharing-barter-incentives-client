@@ -40,6 +40,11 @@ $ docker-compose up
 
 The documentation for the Predico Datamarket API can be found at: http://localhost:8000/docs
 
+# UI
+
+The UI for the Predico Datamarket API can be found at: http://localhost:8000
+https://github.com/jyotiv2023/admindash?ref=reactjsexample.com
+
 # Steps
 
 The following steps are required to run the simulation tool and interact with the Predico Datamarket API.

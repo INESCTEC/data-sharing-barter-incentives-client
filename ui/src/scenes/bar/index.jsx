@@ -1,6 +1,9 @@
 import { Box } from "@mui/material";
 import Header from "../../components/Header";
 import BarChart from "../../components/BarChart";
+import Chart from 'chart.js/auto';
+import { getRelativePosition } from 'chart.js/helpers';
+
 
 const Bar = () => {
   return (
