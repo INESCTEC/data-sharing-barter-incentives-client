@@ -61,6 +61,9 @@ class BidSchema(BaseModel):
         else:
             raise ValueError("Invalid resource id")
 
+    # @field_validator("max_payment")
+    # def check_max_payment(cls, value):
+    #     return int(value * 1000000)
 
 class UserRole(str, Enum):
     BUYER = "buyer"
