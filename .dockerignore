@@ -3,6 +3,7 @@
 .vscode
 .gitignore
 .dockerignore
+ui/
 Dockerfile
 docker-compose.yml
 __pycache__
