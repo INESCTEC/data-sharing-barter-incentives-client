@@ -38,7 +38,7 @@ const Dashboard = () => {
   const [forecast, setForecast] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [measurements, setMeasurements] = useState(null);
-  
+
   // const getSessions = async () => {
   //   axios.get('http://localhost:8000/market/session').then((response) => {
   //     console.log(response);
@@ -178,7 +178,7 @@ const Dashboard = () => {
             const totalPayment = data.reduce((sum, item) => sum + item.session_payment, 0);
             const totalRevenue = data.reduce((sum, item) => sum + item.session_revenue, 0);
             data.forEach(item => {
-              item.session_payment = item.session_payment / 1000000;
+              item.session_payment = Math.abs(item.session_payment) / 1000000;
               item.session_revenue = item.session_revenue / 1000000;
               item.session_deposit = item.session_deposit / 1000000;
               item.session_balance = item.session_balance / 1000000;
@@ -207,12 +207,13 @@ const Dashboard = () => {
     axios.get('http://localhost:8000/user/resource').then((response) => {
       if (response.data.code === 200) {
         setResources(response.data.data);
-        const daysPast = 4;
+        const daysPast = 3;
+        const daysFuture = 1;
         const pastDate = moment().subtract(daysPast, 'days').utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
-        const futureDate = moment().add(daysPast, 'days').utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
-        
+        const futureDate = moment().add(daysFuture, 'days').utc().format('YYYY-MM-DDTHH:mm:ss[Z]');
+
         response.data.data.forEach(resource => {
-          let url = `http://localhost:8000/data/raw-data/${pastDate}/${futureDate}/${resource.id}`;
+          let url = `http://localhost:8000/data/available-data/${pastDate}/${futureDate}/${resource.id}`;
           console.log(url);
           axios.get(url).then((response) => {
             console.log(response);
@@ -243,9 +244,9 @@ const Dashboard = () => {
     getBalance().then();
     console.log("entering get market balance")
     getMarketBalance().then();
-    getForecast().then();
+//     getForecast().then();
     getTransactions().then();
-    getMeasurements().then();
+//     getMeasurements().then();
     // const intervalId = setInterval(async () => {
     //   await getResources();
     //   await getBalance();
@@ -335,12 +336,12 @@ const Dashboard = () => {
           alignItems="center"
           justifyContent="center"
         >
-          {totalPayment === 0 || totalPayment > 0 ? (
+          {Math.abs(totalPayment) === 0 || Math.abs(totalPayment) > 0 ? (
             <StatBox
-              title={(totalPayment / 1000000).toFixed(3)}
+              title={(Math.abs(totalPayment) / 1000000).toFixed(3)}
               subtitle="Total payment (Shimmer)"
               icon={
-                <SentimentVeryDissatisfiedIcon
+                <SentimentSatisfiedAltIcon
                   sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
                 />
               }
@@ -369,7 +370,7 @@ const Dashboard = () => {
           ) : (
             <CircularProgress color="success"/>
           )}
-        
+
         </Box>
         {/* ROW 2 */}
         <Box
@@ -379,6 +380,7 @@ const Dashboard = () => {
         >
           <Box
             mt="25px"
+            mb="20px"
             p="0 30px"
             display="flex "
             justifyContent="space-between"
@@ -390,7 +392,7 @@ const Dashboard = () => {
                 fontWeight="600"
                 color={colors.grey[100]}
               >
-                Resource measurements
+                Resource timeseries data
               </Typography>
             
             </Box>
@@ -449,7 +451,11 @@ const Dashboard = () => {
               </Box>
               <Box color={colors.grey[100]}>{moment(transaction.registered_at).format("YYYY-MM-DD HH:mm:ss")}</Box>
               <Box
-                backgroundColor={transaction.amount < 0 ? colors.redAccent[500] : colors.greenAccent[500]}
+                backgroundColor={
+                transaction.transaction_type === 'transfer_in' ? '#90d6ff' :
+                transaction.transaction_type === 'payment' ? '#ee4b2b' :
+                transaction.transaction_type === 'revenue' ? '#85BB65' : 'grey'
+                }
                 p="5px 10px"
                 borderRadius="4px"
               >
@@ -492,6 +498,12 @@ const Dashboard = () => {
           gridRow="span 3"
           backgroundColor={colors.primary[400]}
         >
+                  <Box
+            mb="20px"
+            display="flex "
+            justifyContent="space-between"
+            alignItems="center"
+          >
           <Typography
             variant="h5"
             fontWeight="600"
@@ -499,11 +511,11 @@ const Dashboard = () => {
           >
             Aggregated balance by session
           </Typography>
-          
+          </Box>
           <Box>
             <BarChart data={marketBalance}/>
           </Box>
-        
+
         
         </Box>
       

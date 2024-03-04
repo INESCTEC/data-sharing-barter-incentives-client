@@ -33,7 +33,8 @@ const TimeSeriesLineChart = (data) => {
         <YAxis label={{ value: 'Average Power (kW)', angle: -90, position: 'insideLeft' }} />
         <Tooltip />
         <Legend />
-        <Line type="monotone" dataKey="value" stroke="#8884d8" activeDot={{ r: 8 }} />
+        <Line type="monotone" dataKey="forecasts" stroke="#8884d8" strokeWidth={3}/>
+        <Line type="monotone" dataKey="measurements" stroke="#82ca9d" strokeWidth={3}/>
       </LineChart>
     </ResponsiveContainer>
   );

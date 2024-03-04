@@ -41,8 +41,7 @@ const SimpleBarChart = (data) => {
         <YAxis />
         <Tooltip />
         <Legend />
-        <Bar dataKey="session_deposit" fill="#FF8C00" />
-        <Bar dataKey="session_balance" fill="#82ca9d" />
+        <Bar dataKey="session_deposit" fill="#90d6ff" />
         <Bar dataKey="session_payment" fill="#EE4B2B" />
         <Bar dataKey="session_revenue" fill="#85BB65" />
       </BarChart>
