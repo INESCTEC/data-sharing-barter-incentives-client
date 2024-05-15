@@ -1,9 +1,10 @@
-import json
-import os
+import uuid
+from datetime import datetime
 from enum import Enum
 from typing import List
-import uuid
+
 from pydantic import BaseModel, Field, EmailStr, field_validator
+from pydantic import UUID4
 
 
 class TransactionSchema(BaseModel):
@@ -32,9 +33,9 @@ class WalletSchema(BaseModel):
 
 
 class TransferSchema(BaseModel):
-    email: EmailStr
-    amount: int
-    wallet_address: str
+    amount: float
+    identifier: str  # The email address or public address of the recipient
+
 
 class UserLoginSchema(BaseModel):
     email: EmailStr
@@ -64,6 +65,7 @@ class BidSchema(BaseModel):
     # @field_validator("max_payment")
     # def check_max_payment(cls, value):
     #     return int(value * 1000000)
+
 
 class UserRole(str, Enum):
     BUYER = "buyer"
@@ -126,10 +128,7 @@ class TimeSeriesItem(BaseModel):
     value: float = Field(..., example=1.0)
 
 
-class ResourceSchema(BaseModel):
-    name: str = Field(..., example="resource-3")
-    type: str = Field(..., example="measurements")
-    to_forecast: bool = Field(True, example=False)
+
 
 
 class MeasurementsSchema(BaseModel):

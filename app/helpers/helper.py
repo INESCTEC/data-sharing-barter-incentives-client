@@ -1,9 +1,17 @@
 import os
 
 from payment.PaymentGateway.IOTAPayment.IOTAPaymentController import WalletConfig
+from payment.PaymentGateway.EthereumSmartContract.EthereumSmartContract import SmartContractConfig, TokenABI
 from app.models.models import Token
 from app.crud import get_token
 from sqlalchemy.orm import Session
+
+
+def smart_contract_config() -> SmartContractConfig:
+    return SmartContractConfig(
+        web3_provider_url=os.getenv("WEB3_PROVIDER_URL"),
+        contract_address=os.getenv("CONTRACT_ADDRESS"),
+        abi=TokenABI.ETK)
 
 
 def wallet_config() -> WalletConfig:

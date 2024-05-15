@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 
 from app.dependencies import engine
-from app.models import models
+from app.models.models import User, Token, Base
 from app.routes.market import router as market_router
 from app.routes.measurements import router as measurements_router
 from app.routes.resource import router as resource_router
@@ -46,7 +46,7 @@ app.include_router(market_router, prefix="/market", tags=["Market"])
 app.include_router(measurements_router, prefix="/data", tags=["Measurements"])
 # Dependency
 
-models.Base.metadata.create_all(bind=engine)
+Base.metadata.create_all(bind=engine)
 
 
 @app.get("/")

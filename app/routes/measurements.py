@@ -14,44 +14,43 @@ router = APIRouter()
 
 @router.post("/raw-data")
 async def post_raw_data(payload: MeasurementsSchema,
-                        request_strategy=Depends(get_request_strategy)):
-    with get_db_session() as db:
-        header = get_header(db=db)
+                        request_strategy=Depends(get_request_strategy),
+                        db=Depends(get_db_session)):
+    header = get_header(db=db)
 
-        try:
-            response = request_strategy.make_request(endpoint="/data/raw-data/",
-                                                     method="post",
-                                                     data=payload.model_dump(),
-                                                     headers=header)
-        except Exception as e:
-            return JSONResponse(content={"error": str(e)}, status_code=500)
+    try:
+        response = request_strategy.make_request(endpoint="/data/raw-data/",
+                                                 method="post",
+                                                 data=payload.model_dump(),
+                                                 headers=header)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
 
-        return JSONResponse(content=response.json(), status_code=response.status_code)
+    return JSONResponse(content=response.json(), status_code=response.status_code)
 
 
 @router.get("/raw-data/{start_date}/{end_date}/{resource_id}")
 async def get_raw_data(start_date: str,
                        end_date: str,
                        resource_id: str,
-                       request_strategy=Depends(get_request_strategy)):
-
+                       request_strategy=Depends(get_request_strategy),
+                       db=Depends(get_db_session)):
     try:
         uuid.UUID(resource_id)
     except ValueError:
         return JSONResponse(content={"error": "Invalid resource_id"}, status_code=400)
 
-    with get_db_session() as db:
-        header = get_header(db=db)
+    header = get_header(db=db)
 
-        endpoint = f"data/raw-data/?start_date={start_date}&end_date={end_date}&resource={resource_id}"
-        try:
-            response = request_strategy.make_request(endpoint=endpoint,
-                                                     method="get",
-                                                     headers=header)
-        except Exception as e:
-            return JSONResponse(content={"error": str(e)}, status_code=500)
+    endpoint = f"data/raw-data/?start_date={start_date}&end_date={end_date}&resource={resource_id}"
+    try:
+        response = request_strategy.make_request(endpoint=endpoint,
+                                                 method="get",
+                                                 headers=header)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
 
-        return JSONResponse(content=response.json(), status_code=response.status_code)
+    return JSONResponse(content=response.json(), status_code=response.status_code)
 
 
 @router.get("/forecast/{start_date}/{end_date}/{resource_id}")
@@ -140,7 +139,7 @@ async def get_forecast(start_date: str,
                 data_measurements.set_index("datetime", inplace=True)
             else:
                 data_measurements = pd.DataFrame(index=expected_dates,
-                                              columns=["measurements"])
+                                                 columns=["measurements"])
                 data_measurements["measurements"] = None
 
             # Merge based on datetime:
@@ -150,7 +149,7 @@ async def get_forecast(start_date: str,
             dataset.index.name = "datetime"
             dataset.reset_index(drop=False, inplace=True)
             dataset["datetime"] = dataset["datetime"].dt.strftime("%Y-%m-%dT%H:%M:%SZ")
-            dataset = dataset.replace({np.nan:None})
+            dataset = dataset.replace({np.nan: None})
             # print(dataset.head(5))
             response_json = dataset.to_dict(orient="records")
             # print(response_json)
