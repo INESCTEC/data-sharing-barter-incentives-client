@@ -18,6 +18,7 @@ def get_token(db: Session) -> Optional[Token]:
 
     current_time = datetime.utcnow()
     # Query for tokens where the expiration time is greater than the current time
+    # noinspection PyTypeChecker
     query = db.query(Token).filter(Token.expires_at > current_time).order_by(
         desc(Token.created_at)).first()
 
@@ -28,6 +29,7 @@ async def cleanup_expired_tokens(db: Session):
     # Calculate the current time
     current_time = datetime.utcnow()
     # Delete expired tokens from the Token table
+    # noinspection PyTypeChecker
     db.query(Token).filter(Token.expires_at < current_time).delete()
     # Commit the changes
     db.commit()

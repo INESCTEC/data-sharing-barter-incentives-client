@@ -1,14 +1,21 @@
 import os
-from contextlib import contextmanager
+from datetime import datetime, timedelta
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
 from passlib.context import CryptContext
+from payment.AbstractPayment import AbstractPayment
+from payment.PaymentGateway.BlockchainDatabase import BlockchainDatabase
+from payment.PaymentGateway.EthereumSmartContract.EthereumSmartContract import EthereumSmartContract
+from payment.PaymentGateway.IOTAPayment.IOTAPaymentController import IOTAPaymentController
+from payment.schemas.ethereum_schema import EthereumAccountSchema
 from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 from sqlalchemy.orm import sessionmaker
-from datetime import datetime, timedelta
+
 from app.apis.RequestStrategy import RequestContext, RequestsStrategy, DataspaceStrategy
+from app.helpers.helper import wallet_config, smart_contract_config
 from app.models.models import User
 
 db_username = os.getenv("POSTGRES_USER", "predico")
@@ -26,33 +33,13 @@ SECRET_KEY = os.getenv("SECRET_KEY", "YOUR_SECRET_KEY")
 ALGORITHM = "HS256"
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
-
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        email: str = payload.get("sub")
-        if email is None:
-            raise credentials_exception
-    except jwt.JWTError:
-        raise credentials_exception
-
-    with get_db_session() as db:
-        user = db.query(User).filter(User.email == email).first()
-        if user is None:
-            raise credentials_exception
-        return user
-
-
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def authenticate_user(email: str, password: str, db) -> User:
+def authenticate_user(email: str, password: str, db: Session) -> User:
+
+    # noinspection PyTypeChecker
     user = db.query(User).filter(User.email == email).first()
     if not user or not verify_password(password, user.password_hash):
         raise HTTPException(status_code=400, detail="Incorrect email or password")
@@ -77,6 +64,49 @@ def get_db_session():
         yield db
     finally:
         db.close()
+
+
+def get_payment_processor() -> AbstractPayment:
+    try:
+        blockchain_db = BlockchainDatabase(engine)
+        payment_type = os.getenv("PAYMENT_PROCESSOR_TYPE", "IOTA")  # Default to IOTA if not specified
+        if payment_type == "IOTA":
+            return IOTAPaymentController(config=wallet_config(), blockchain_db=blockchain_db)
+        elif payment_type == "ERC20":
+            account = EthereumAccountSchema(
+                public_address='0x9AD9Ff0C9b1c5437548e350DD95526354e57b323',
+                private_key='03dfd0949c4798da957a811bbb07a56afea6706513f6b5f1b35759e0c1ade29e')
+            config = smart_contract_config()
+            return EthereumSmartContract(config=config, account=account, blockchain_db=blockchain_db)
+        elif payment_type == "FIAT":
+            raise ValueError("Fiat payment processor not yet supported")
+        else:
+            raise ValueError("Unsupported payment processor type")
+    except Exception as e:
+        raise e
+
+
+async def get_current_user(token: str = Depends(oauth2_scheme),
+                           db: Session = Depends(get_db_session)):
+
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except jwt.JWTError:
+        raise credentials_exception
+
+    # noinspection PyTypeChecker
+    user = db.query(User).filter(User.email == email).first()
+    if user is None:
+        raise credentials_exception
+    return user
 
 
 def get_request_strategy() -> RequestContext:

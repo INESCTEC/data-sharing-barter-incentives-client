@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 
 from app.dependencies import engine
-from app.models.models import User, Token, Base
+from app.models.models import Base
 from app.routes.market import router as market_router
 from app.routes.measurements import router as measurements_router
 from app.routes.resource import router as resource_router
@@ -18,6 +18,8 @@ app = FastAPI(
                 "You have a wallet assigned to each user you create using this API This API is part of "
                 "the Predico project and its purpose is to allow users to interact with the market while abstracting "
                 "the complexity of the underlying technologies",
+    docs_url="/swagger",  # Change the default Swagger UI URL
+    redoc_url="/redoc"  # Change the default ReDoc URL
 )
 
 # List of allowed origins (e.g., React app's URL)

@@ -1,19 +1,22 @@
 import json
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, Response
+
+from fastapi import APIRouter, Depends, HTTPException, Response, Security
 from sqlalchemy.orm import Session
 
 from app.apis.RequestStrategy import RequestContext
-from app.dependencies import get_db_session, get_request_strategy
+from app.dependencies import get_db_session, get_request_strategy, get_current_user
 from app.helpers.helper import get_header
-from app.schemas.resources.schemas import ResourceSchema, ResourceOutputSchemaGET, ResourceOutputSchema
+from app.models.models import User
+from app.schemas.resources.schema import ResourceSchema, ResourceOutputSchemaGET, ResourceOutputSchema
 
 router = APIRouter()
 
 
 @router.get("/", response_model=ResourceOutputSchemaGET)
 def list_resource(request_strategy: RequestContext = Depends(get_request_strategy),
-                  db: Session = Depends(get_db_session)):
+                  db: Session = Depends(get_db_session),
+                  user: User = Security(get_current_user)):
     try:
         header = get_header(db=db)
         response = request_strategy.make_request(endpoint='/user/resource/',

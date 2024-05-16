@@ -1,21 +1,21 @@
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
-from fastapi import Security
 from fastapi.responses import JSONResponse
 from loguru import logger
 from sqlalchemy.orm import Session
 
 from app.apis.RequestStrategy import RequestContext
 from app.crud import add_token, cleanup_expired_tokens
-from app.dependencies import get_current_user, authenticate_user, create_access_token, pwd_context
+from app.dependencies import authenticate_user, create_access_token, pwd_context
 from app.dependencies import get_db_session, get_request_strategy
 from app.models.models import User
 from app.routes.wallet import get_payment_processor
 from app.schemas.schemas import UserLoginSchema, UserRegistrationSchema
+from app.schemas.user.schema import LoginResponseModel, RegisterResponseModel
 
 router = APIRouter()
 
 
-@router.post("/login")
+@router.post("/login", response_model=LoginResponseModel)
 async def login(credentials: UserLoginSchema,
                 background_tasks: BackgroundTasks,
                 request_strategy: RequestContext = Depends(get_request_strategy),
@@ -41,7 +41,7 @@ async def login(credentials: UserLoginSchema,
     raise HTTPException(status_code=response.status_code, detail="Failed to login")
 
 
-@router.post("/register")
+@router.post("/register", response_model=RegisterResponseModel)
 def register_user(credentials: UserRegistrationSchema,
                   request_strategy: RequestContext = Depends(get_request_strategy),
                   db: Session = Depends(get_db_session)):

@@ -28,7 +28,7 @@ def make_market_request(endpoint: str, request_strategy: RequestContext, db_sess
 
 
 @router.get("/session/fee")
-def session_fee(request_strategy: RequestContext = Depends(get_request_strategy),
+def session_fee(request_strategy: RequestContext = Depends(get_request_strategy,),
                 db=Depends(get_db_session)):
 
     try:
