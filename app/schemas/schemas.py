@@ -48,7 +48,6 @@ class UserWalletSchema(BaseModel):
 
 
 class BidSchema(BaseModel):
-    email: EmailStr
     market_session: int
     bid_price: int
     max_payment: int

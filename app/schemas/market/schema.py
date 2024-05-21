@@ -2,6 +2,14 @@ from pydantic import BaseModel
 from uuid import UUID
 from datetime import datetime
 from typing import Optional
+from enum import Enum
+
+
+class MarketSessionStatus(str, Enum):
+    finished = "finished"
+    open = "open"
+    closed = "closed"
+    running = "running"
 
 
 class MarketWalletResponseDataModel(BaseModel):

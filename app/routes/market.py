@@ -5,15 +5,17 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from fastapi.responses import JSONResponse
 from loguru import logger
+from payment.PaymentGateway.IOTAPayment.IOTAPaymentController import IOTAPaymentController
 from payment.exceptions.wallet_exceptions import WalletException
 
 from app.apis.RequestStrategy import RequestContext
 from app.dependencies import get_db_session, get_request_strategy, get_current_user, get_payment_processor
 from app.helpers.helper import get_header
-from app.schemas.schemas import BidSchema
 from app.schemas.market.schema import (MarketWalletResponseModel,
                                        UserMarketWalletResponseModel,
-                                       MarketSessionsResponse)
+                                       MarketSessionsResponse,
+                                       MarketSessionStatus)
+from app.schemas.schemas import BidSchema
 
 router = APIRouter()
 retries = 3
@@ -90,11 +92,15 @@ def get_market_address(request_strategy: RequestContext = Depends(get_request_st
 
 
 @router.get("/session", response_model=MarketSessionsResponse)
-def get_session(request_strategy: RequestContext = Depends(get_request_strategy),
+def get_session(status: Optional[MarketSessionStatus] = "open",
+                request_strategy: RequestContext = Depends(get_request_strategy),
                 db=Depends(get_db_session)):
     try:
+        endpoint = "/market/session/"
+        if status:
+            endpoint += f"?market_session_status={status}"
         header = get_header(db=db)
-        response = request_strategy.make_request(endpoint="/market/session/",
+        response = request_strategy.make_request(endpoint=endpoint,
                                                  method="get",
                                                  headers=header)
 
@@ -129,6 +135,7 @@ def get_session_bid(market_session: int,
 async def get_session_bid(background_tasks: BackgroundTasks,
                           payload: BidSchema,
                           request_strategy: RequestContext = Depends(get_request_strategy),
+                          user=Depends(get_current_user),
                           db=Depends(get_db_session)):
     header = get_header(db=db)
 
@@ -154,8 +161,15 @@ async def get_session_bid(background_tasks: BackgroundTasks,
                                 status_code=response.status_code,
                                 media_type="application/json")
 
+        user_address = payment_processor.get_account_data(identifier=user.email).address
         market_wallet_address = response.json()['data']['wallet_address']
-        balance = payment_processor.get_balance().balance
+
+        # Check if user has sufficient balance particular parameter to IOTA
+        # todo fix this to be more generic
+        if isinstance(payment_processor, IOTAPaymentController):
+            balance = payment_processor.get_balance(identifier=user.email).balance
+        else:
+            balance = payment_processor.get_balance().balance
 
         if int(balance) >= payload.max_payment:
             response = request_strategy.make_request(endpoint="/market/bid/",
@@ -174,7 +188,7 @@ async def get_session_bid(background_tasks: BackgroundTasks,
             background_tasks.add_task(
                 background_task_wrapper,
                 payment_processor,
-                payload.email,
+                user_address,
                 market_wallet_address,
                 payload.max_payment,
                 request_strategy,
