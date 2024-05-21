@@ -5,8 +5,8 @@ from sqlalchemy.orm import Session
 
 from app.apis.RequestStrategy import RequestContext
 from app.crud import add_token, cleanup_expired_tokens
-from app.dependencies import authenticate_user, create_access_token, pwd_context
-from app.dependencies import get_db_session, get_request_strategy
+from app.dependencies import authenticate_user, create_access_token, pwd_context, create_refresh_token
+from app.dependencies import get_db_session, get_request_strategy, get_payload_from_refresh_token
 from app.models.models import User
 from app.routes.wallet import get_payment_processor
 from app.schemas.schemas import UserLoginSchema, UserRegistrationSchema
@@ -20,6 +20,7 @@ async def login(credentials: UserLoginSchema,
                 background_tasks: BackgroundTasks,
                 request_strategy: RequestContext = Depends(get_request_strategy),
                 db: Session = Depends(get_db_session)):
+
     response = request_strategy.make_request(endpoint="/token",
                                              method="post",
                                              data=credentials.model_dump())
@@ -28,16 +29,35 @@ async def login(credentials: UserLoginSchema,
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect username or password")
     access_token = create_access_token(data={"sub": user.email})
+    refresh_token = create_refresh_token(data={"sub": user.email})
 
     if response.status_code == status.HTTP_200_OK:
         # update the token in the database
         logger.debug(f"Adding token to database: {response.json()}")
         add_token(db=db, token=response.json()['access'])
         background_tasks.add_task(cleanup_expired_tokens, db)
-        return JSONResponse({"access_token": access_token, "token_type": "bearer"})
+        return JSONResponse({"access_token": access_token,
+                             "refresh_token": refresh_token,
+                             "token_type": "bearer"})
 
     logger.error(f"Failed to login in the remote predico server: {response.json()}")
     raise HTTPException(status_code=response.status_code, detail="Failed to login")
+
+
+@router.post("/refresh", response_model=LoginResponseModel)
+async def post_refresh_token(refresh_token: str, db: Session = Depends(get_db_session)):
+
+    email = get_payload_from_refresh_token(refresh_token=refresh_token)
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    new_access_token = create_access_token(data={"sub": email})
+    new_refresh_token = create_refresh_token(data={"sub": email})
+
+    return {"access_token": new_access_token,
+            "refresh_token": new_refresh_token,
+            "token_type": "bearer"}
 
 
 @router.post("/register", response_model=RegisterResponseModel)

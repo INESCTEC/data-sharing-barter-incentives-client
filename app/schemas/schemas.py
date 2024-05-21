@@ -128,9 +128,6 @@ class TimeSeriesItem(BaseModel):
     value: float = Field(..., example=1.0)
 
 
-
-
-
 class MeasurementsSchema(BaseModel):
     resource_name: str = Field(..., example="resource-3")
     time_interval: int = Field(..., example=60)

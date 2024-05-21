@@ -36,18 +36,13 @@ async def post_raw_data(payload: MeasurementsSchema,
 @router.get("/raw-data/{start_date}/{end_date}/{resource_id}")
 async def get_raw_data(start_date: str,
                        end_date: str,
-                       resource_id: str,
+                       resource_id: uuid.UUID,
                        request_strategy=Depends(get_request_strategy),
                        db=Depends(get_db_session)):
-    try:
-        uuid.UUID(resource_id)
-    except ValueError:
-        return JSONResponse(content={"error": "Invalid resource_id"}, status_code=400)
 
-    header = get_header(db=db)
-
-    endpoint = f"data/raw-data/?start_date={start_date}&end_date={end_date}&resource={resource_id}"
     try:
+        header = get_header(db=db)
+        endpoint = f"data/raw-data/?start_date={start_date}&end_date={end_date}&resource={resource_id}"
         response = request_strategy.make_request(endpoint=endpoint,
                                                  method="get",
                                                  headers=header)
@@ -60,17 +55,12 @@ async def get_raw_data(start_date: str,
 @router.get("/forecast/{start_date}/{end_date}/{resource_id}")
 async def get_forecast(start_date: str,
                        end_date: str,
-                       resource_id: str,
+                       resource_id: uuid.UUID,
                        request_strategy=Depends(get_request_strategy),
                        db=Depends(get_db_session)):
-    try:
-        uuid.UUID(resource_id)
-    except ValueError:
-        return JSONResponse(content={"error": "Invalid resource_id"}, status_code=400)
-
-    header = get_header(db=db)
 
     try:
+        header = get_header(db=db)
         response = request_strategy.make_request(endpoint=f"/data/market-forecasts/?"
                                                           f"start_date={start_date}&"
                                                           f"end_date={end_date}&"
@@ -86,18 +76,12 @@ async def get_forecast(start_date: str,
 @router.get("/available-data/{start_date}/{end_date}/{resource_id}")
 async def get_forecast(start_date: str,
                        end_date: str,
-                       resource_id: str,
+                       resource_id: uuid.UUID,
                        request_strategy=Depends(get_request_strategy),
                        db=Depends(get_db_session)):
-    try:
-        uuid.UUID(resource_id)
-    except ValueError:
-        return JSONResponse(content={"error": "Invalid resource_id"}, status_code=400)
-
-    header = get_header(db=db)
 
     try:
-        # Get existing forecasts:
+        header = get_header(db=db)
         rsp_forecasts = request_strategy.make_request(endpoint=f"/data/market-forecasts/?"
                                                                f"start_date={start_date}&"
                                                                f"end_date={end_date}&"

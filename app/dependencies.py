@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import jwt
+from jose import jwt, JWTError
 from passlib.context import CryptContext
 from payment.AbstractPayment import AbstractPayment
 from payment.PaymentGateway.BlockchainDatabase import BlockchainDatabase
@@ -30,6 +30,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = os.getenv("SECRET_KEY", "YOUR_SECRET_KEY")
+REFRESH_TOKEN_EXPIRE_DAYS = os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 7)
 ALGORITHM = "HS256"
 
 
@@ -44,6 +45,27 @@ def authenticate_user(email: str, password: str, db: Session) -> User:
     if not user or not verify_password(password, user.password_hash):
         raise HTTPException(status_code=400, detail="Incorrect email or password")
     return user
+
+
+def get_payload_from_refresh_token(refresh_token: str):
+    try:
+        payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+        email = payload.get("sub")
+
+        if email is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        return email
+
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+
+def create_refresh_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
 
 
 def create_access_token(data: dict, expires_delta: timedelta = None):

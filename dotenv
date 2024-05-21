@@ -3,6 +3,9 @@ GITLAB_TOKEN=gitlab_access_token_here
 BASE_URL=http://localhost:8000
 PREDICO_BASE_URL=http://server:port
 USE_DATASPACE=False  # True = Tries to use DataSpace connector, False = Uses normal HTTP requests
+REFRESH_TOKEN_EXPIRE_DAYS=7
+PAYMENT_PROCESSOR_TYPE=IOTA
+# PAYMENT_PROCESSOR_TYPE=ERC20,IOTA,FIAT
 
 # Database Settings
 POSTGRES_DB=user_db_name_here
@@ -23,3 +26,12 @@ METADATA_BROKER=connector_metadata_broker_url_here
 EXTERNAL_ACCESS_URL=external_connector_access_url_here
 EXTERNAL_CONNECTOR_ID=external_connector_id_here
 EXTERNAL_AGENT_ID=external_agent_id_here
+
+
+# Ethereum credentials
+ETH_PUBLIC_KEY=
+ETH_PRIVATE_KEY=
+
+# Ethereum Payment Gateway
+CONTRACT_ADDRESS=0xb6bf9f117f76bbbf20a5ff942ba8bd48c3acee89
+WEB3_PROVIDER_URL=https://sepolia.infura.io/v3/cf175d91d8c7403fa135f523098f85f5
