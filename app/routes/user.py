@@ -20,7 +20,6 @@ async def login(credentials: UserLoginSchema,
                 background_tasks: BackgroundTasks,
                 request_strategy: RequestContext = Depends(get_request_strategy),
                 db: Session = Depends(get_db_session)):
-
     response = request_strategy.make_request(endpoint="/token",
                                              method="post",
                                              data=credentials.model_dump())
@@ -45,7 +44,6 @@ async def login(credentials: UserLoginSchema,
 def register_user(credentials: UserRegistrationSchema,
                   request_strategy: RequestContext = Depends(get_request_strategy),
                   db: Session = Depends(get_db_session)):
-
     # noinspection PyTypeChecker
     user = db.query(User).filter(User.email == credentials.email).first()
 

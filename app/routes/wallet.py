@@ -63,7 +63,10 @@ def get_transactions(user: User = Security(get_current_user)):
 def get_balance(current_user: User = Security(get_current_user)):
     try:
         payment_processor = get_payment_processor()
-        return payment_processor.get_balance(identifier=current_user.email)
+        if isinstance(payment_processor, IOTAPaymentController):
+            return payment_processor.get_balance(identifier=current_user.email)
+        return payment_processor.get_balance(
+            identifier=payment_processor.get_account_data(current_user.email).address)
     except Exception as e:
         error_dict = ast.literal_eval(str(e))
         raise HTTPException(status_code=400, detail=error_dict)
@@ -110,24 +113,3 @@ def get_request_funds(user: User = Security(get_current_user)):
 
     return Response(content=response, status_code=200, media_type="application/json")
 
-
-@router.get("/register",
-            response_description="Register a new account and initialize the wallet",
-            response_model=RegisterWalletResponseModel)
-def get_register_wallet_address(request_strategy: RequestContext = Depends(get_request_strategy),
-                                db=Depends(get_db_session),
-                                user: User = Security(get_current_user)):
-    payment_processor = get_payment_processor()
-
-    try:
-        payment_processor.initialize_payment_method()
-        address = payment_processor.get_account_data(identifier=user.email).address
-
-        header = get_header(db=db)
-        response = request_strategy.make_request(endpoint="/user/wallet-address/",
-                                                 method="post",
-                                                 data={"wallet_address": address},
-                                                 headers=header)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    return Response(content=json.dumps(response.json()), status_code=200, media_type="application/json")

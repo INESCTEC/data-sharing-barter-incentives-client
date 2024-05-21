@@ -5,14 +5,15 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from fastapi.responses import JSONResponse
 from loguru import logger
-from payment.PaymentGateway.IOTAPayment.IOTAPaymentController import IOTAPaymentController
 from payment.exceptions.wallet_exceptions import WalletException
 
 from app.apis.RequestStrategy import RequestContext
-from app.dependencies import get_db_session, get_request_strategy
+from app.dependencies import get_db_session, get_request_strategy, get_current_user, get_payment_processor
 from app.helpers.helper import get_header
-from app.helpers.helper import wallet_config
 from app.schemas.schemas import BidSchema
+from app.schemas.market.schema import (MarketWalletResponseModel,
+                                       UserMarketWalletResponseModel,
+                                       MarketSessionsResponse)
 
 router = APIRouter()
 retries = 3
@@ -27,26 +28,70 @@ def make_market_request(endpoint: str, request_strategy: RequestContext, db_sess
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.get("/session/fee")
-def session_fee(request_strategy: RequestContext = Depends(get_request_strategy,),
-                db=Depends(get_db_session)):
-
+@router.get("/wallet/user_wallet_address",
+            response_description="Get the user wallet address registered in the market",
+            response_model=UserMarketWalletResponseModel)
+def get_user_address(request_strategy: RequestContext = Depends(get_request_strategy),
+                     db=Depends(get_db_session)):
     try:
         header = get_header(db=db)
-        response = request_strategy.make_request(endpoint="/market/fee/",
+        response = request_strategy.make_request(endpoint="/user/wallet-address/",
                                                  method="get",
                                                  headers=header)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
     return JSONResponse(content=response.json(),
                         status_code=200,
                         media_type="application/json")
 
 
-@router.get("/session")
-def session(request_strategy: RequestContext = Depends(get_request_strategy),
-            db=Depends(get_db_session)):
+@router.post("/wallet/user_wallet_address",
+             response_description="Register the user wallet address in the market",
+             response_model=UserMarketWalletResponseModel)
+def post_user_address(request_strategy: RequestContext = Depends(get_request_strategy),
+                      user=Depends(get_current_user),
+                      db=Depends(get_db_session)):
+    payment_processor = get_payment_processor()
 
+    try:
+        payment_processor.initialize_payment_method()
+        address = payment_processor.get_account_data(identifier=user.email).address
+
+        header = get_header(db=db)
+        response = request_strategy.make_request(endpoint="/user/wallet-address/",
+                                                 method="post",
+                                                 data={"wallet_address": address},
+                                                 headers=header)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    return JSONResponse(content=response.json(),
+                        status_code=200,
+                        media_type="application/json")
+
+
+@router.get("/wallet/market_wallet_address",
+            response_description="Get the market wallet address registered in the market",
+            response_model=MarketWalletResponseModel)
+def get_market_address(request_strategy: RequestContext = Depends(get_request_strategy),
+                       db=Depends(get_db_session)):
+    try:
+        header = get_header(db=db)
+        response = request_strategy.make_request(endpoint="/market/wallet-address/",
+                                                 method="get",
+                                                 headers=header)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    return JSONResponse(content=response.json(),
+                        status_code=200,
+                        media_type="application/json")
+
+
+@router.get("/session", response_model=MarketSessionsResponse)
+def get_session(request_strategy: RequestContext = Depends(get_request_strategy),
+                db=Depends(get_db_session)):
     try:
         header = get_header(db=db)
         response = request_strategy.make_request(endpoint="/market/session/",
@@ -61,10 +106,9 @@ def session(request_strategy: RequestContext = Depends(get_request_strategy),
 
 
 @router.get("/session/balance")
-def session_balance(by_resource: Optional[bool] = True,
-                    request_strategy: RequestContext = Depends(get_request_strategy),
-                    db=Depends(get_db_session)):
-
+def get_session_balance(by_resource: Optional[bool] = True,
+                        request_strategy: RequestContext = Depends(get_request_strategy),
+                        db=Depends(get_db_session)):
     endpoint = f"/market/session-balance/?balance_by_resource={by_resource}"
     return make_market_request(endpoint=endpoint,
                                request_strategy=request_strategy,
@@ -72,10 +116,9 @@ def session_balance(by_resource: Optional[bool] = True,
 
 
 @router.get("/session/bid/{market_session}")
-def session_bid(market_session: int,
-                request_strategy: RequestContext = Depends(get_request_strategy),
-                db=Depends(get_db_session)):
-
+def get_session_bid(market_session: int,
+                    request_strategy: RequestContext = Depends(get_request_strategy),
+                    db=Depends(get_db_session)):
     endpoint = f"/market/bid/?market_session={market_session}"
     return make_market_request(endpoint=endpoint,
                                request_strategy=request_strategy,
@@ -83,16 +126,16 @@ def session_bid(market_session: int,
 
 
 @router.post("/session/bid")
-async def session_bid(background_tasks: BackgroundTasks,
-                      payload: BidSchema,
-                      request_strategy: RequestContext = Depends(get_request_strategy),
-                      db=Depends(get_db_session)):
-
+async def get_session_bid(background_tasks: BackgroundTasks,
+                          payload: BidSchema,
+                          request_strategy: RequestContext = Depends(get_request_strategy),
+                          db=Depends(get_db_session)):
     header = get_header(db=db)
 
     for _ in enumerate(range(retries)):
         try:
-            iota_payment = IOTAPaymentController(config=wallet_config())
+            payment_processor = get_payment_processor()
+            payment_processor.initialize_payment_method()
             break
         except WalletException:
             logger.warning("A wallet error occurred. Retrying...")
@@ -112,7 +155,7 @@ async def session_bid(background_tasks: BackgroundTasks,
                                 media_type="application/json")
 
         market_wallet_address = response.json()['data']['wallet_address']
-        balance = iota_payment.get_balance(identifier=payload.email).balance
+        balance = payment_processor.get_balance().balance
 
         if int(balance) >= payload.max_payment:
             response = request_strategy.make_request(endpoint="/market/bid/",
@@ -130,7 +173,7 @@ async def session_bid(background_tasks: BackgroundTasks,
             # Add background task for transaction execution and bid update
             background_tasks.add_task(
                 background_task_wrapper,
-                iota_payment,
+                payment_processor,
                 payload.email,
                 market_wallet_address,
                 payload.max_payment,
@@ -153,23 +196,22 @@ async def session_bid(background_tasks: BackgroundTasks,
         raise HTTPException(status_code=400, detail=str(e))
 
 
-async def execute_transaction_and_update_bid(iota_payment,
+async def execute_transaction_and_update_bid(payment_processor,
                                              from_identifier,
                                              to_identifier,
                                              value,
                                              request_strategy,
                                              bid_id,
                                              header):
-
     try:
         transaction = await asyncio.to_thread(
-            iota_payment.execute_transaction,
+            payment_processor.execute_transaction,
             from_identifier=from_identifier,
             to_identifier=to_identifier,
             value=value
         )
         data = {"tangle_msg_id": transaction.transactionId}
-        iota_payment.wallet.destroy()
+
         await asyncio.to_thread(request_strategy.make_request,
                                 endpoint=f'/market/bid/{bid_id}',
                                 method='patch',
@@ -179,7 +221,7 @@ async def execute_transaction_and_update_bid(iota_payment,
         logger.error(f"Error executing transaction: {str(e)}")
 
 
-def background_task_wrapper(iota_payment,
+def background_task_wrapper(payment_processor,
                             from_identifier,
                             to_identifier,
                             value,
@@ -187,7 +229,7 @@ def background_task_wrapper(iota_payment,
                             bid_id,
                             header):
     asyncio.run(
-        execute_transaction_and_update_bid(iota_payment,
+        execute_transaction_and_update_bid(payment_processor,
                                            from_identifier,
                                            to_identifier,
                                            value,
@@ -199,7 +241,6 @@ def background_task_wrapper(iota_payment,
 @router.get("/session/transactions")
 def session_transactions(request_strategy: RequestContext = Depends(get_request_strategy),
                          db=Depends(get_db_session)):
-
     try:
         header = get_header(db=db)
         response = request_strategy.make_request(endpoint="/market/session-transactions/",
