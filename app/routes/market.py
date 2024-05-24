@@ -161,15 +161,16 @@ async def get_session_bid(background_tasks: BackgroundTasks,
                                 status_code=response.status_code,
                                 media_type="application/json")
 
-        user_address = payment_processor.get_account_data(identifier=user.email).address
         market_wallet_address = response.json()['data']['wallet_address']
 
         # Check if user has sufficient balance particular parameter to IOTA
         # todo fix this to be more generic
         if isinstance(payment_processor, IOTAPaymentController):
             balance = payment_processor.get_balance(identifier=user.email).balance
+            user_address = user.email
         else:
             balance = payment_processor.get_balance().balance
+            user_address = payment_processor.get_account_data(identifier=user.email).address
 
         if int(balance) >= payload.max_payment:
             response = request_strategy.make_request(endpoint="/market/bid/",
@@ -224,7 +225,7 @@ async def execute_transaction_and_update_bid(payment_processor,
             to_identifier=to_identifier,
             value=value
         )
-        data = {"tangle_msg_id": transaction.transactionId}
+        data = {"tangle_msg_id": transaction.tx_receipt}
 
         await asyncio.to_thread(request_strategy.make_request,
                                 endpoint=f'/market/bid/{bid_id}',

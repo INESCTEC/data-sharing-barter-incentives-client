@@ -1,20 +1,16 @@
 import ast
-import json
 from typing import Dict, Any
 
-from fastapi import APIRouter, HTTPException, Response, Depends
+from fastapi import APIRouter, HTTPException, Response
 from fastapi import Security
 from payment.PaymentGateway.EthereumSmartContract.EthereumSmartContract import EthereumSmartContract
 from payment.PaymentGateway.IOTAPayment.IOTAPaymentController import IOTAPaymentController
 from payment.schemas.generic import TransactionSchema, BalanceSchema, TransactionHistorySchema, AccountSchema
 
-from app.apis.RequestStrategy import RequestContext
 from app.dependencies import get_current_user, get_payment_processor
-from app.dependencies import get_request_strategy, get_db_session
-from app.helpers.helper import get_header
 from app.models.models import User
 from app.schemas.schemas import TransferSchema
-from app.schemas.wallet.schema import FundResponseModel, RegisterWalletResponseModel
+from app.schemas.wallet.schema import FundResponseModel
 
 router = APIRouter()
 

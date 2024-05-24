@@ -101,7 +101,7 @@ def get_payment_processor() -> AbstractPayment:
             config = smart_contract_config()
             return EthereumSmartContract(config=config, account=account, blockchain_db=blockchain_db)
         elif payment_type == "FIAT":
-            raise ValueError("Fiat payment processor not yet supported")
+            raise NotImplementedError("Fiat payment processor not yet supported")
         else:
             raise ValueError("Unsupported payment processor type")
     except Exception as e:
