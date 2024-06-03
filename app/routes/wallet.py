@@ -12,6 +12,8 @@ from app.models.models import User
 from app.schemas.schemas import TransferSchema
 from app.schemas.wallet.schema import FundResponseModel
 
+from payment.exceptions.wallet_exceptions import WalletException
+
 router = APIRouter()
 
 
@@ -57,12 +59,15 @@ def get_transactions(user: User = Security(get_current_user)):
 
 @router.get("/balance", response_model=BalanceSchema)
 def get_balance(current_user: User = Security(get_current_user)):
+
     try:
         payment_processor = get_payment_processor()
         if isinstance(payment_processor, IOTAPaymentController):
             return payment_processor.get_balance(identifier=current_user.email)
         return payment_processor.get_balance(
             identifier=payment_processor.get_account_data(current_user.email).address)
+    except WalletException as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         error_dict = ast.literal_eval(str(e))
         raise HTTPException(status_code=400, detail=error_dict)

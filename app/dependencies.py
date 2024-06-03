@@ -30,7 +30,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = os.getenv("SECRET_KEY", "YOUR_SECRET_KEY")
-REFRESH_TOKEN_EXPIRE_DAYS = os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 7)
+REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 7))
 ALGORITHM = "HS256"
 
 
@@ -93,7 +93,9 @@ def get_payment_processor() -> AbstractPayment:
         blockchain_db = BlockchainDatabase(engine)
         payment_type = os.getenv("PAYMENT_PROCESSOR_TYPE", "IOTA")  # Default to IOTA if not specified
         if payment_type == "IOTA":
-            return IOTAPaymentController(config=wallet_config(), blockchain_db=blockchain_db)
+            payment_controller = IOTAPaymentController(config=wallet_config(), blockchain_db=blockchain_db)
+            payment_controller.initialize_payment_method()
+            return payment_controller
         elif payment_type == "ERC20":
             account = EthereumAccountSchema(
                 public_address='0x9AD9Ff0C9b1c5437548e350DD95526354e57b323',
