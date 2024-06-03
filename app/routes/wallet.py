@@ -15,6 +15,7 @@ from app.schemas.wallet.schema import FundResponseModel
 from payment.exceptions.wallet_exceptions import WalletException
 
 router = APIRouter()
+payment_processor = get_payment_processor()
 
 
 @router.get("/validate_transactions",
@@ -22,7 +23,7 @@ router = APIRouter()
                                  "for the last hour",
             response_model=TransactionHistorySchema)
 def get_validate_transfer(user: User = Security(get_current_user)):
-    payment_processor = get_payment_processor()
+
     return payment_processor.validate_transactions()
 
 
@@ -31,7 +32,6 @@ def get_validate_transfer(user: User = Security(get_current_user)):
 @router.get("/address", response_model=AccountSchema)
 def get_wallet_address(user: User = Security(get_current_user)):
     try:
-        payment_processor = get_payment_processor()
         return payment_processor.get_account_data(identifier=user.email)
     except Exception as e:
         error_dict = ast.literal_eval(str(e))
@@ -43,13 +43,11 @@ def get_wallet_address(user: User = Security(get_current_user)):
              response_description="Get transactions by specific fields and values")
 def get_transactions_by(payload: Dict[str, Any],
                         user: User = Security(get_current_user)):
-    payment_processor = get_payment_processor()
     return payment_processor.get_transaction_by_field(filters=payload)
 
 
 @router.get("/transactions", response_model=TransactionHistorySchema)
 def get_transactions(user: User = Security(get_current_user)):
-    payment_processor = get_payment_processor()
     try:
         identifier = payment_processor.get_account_data(user.email).address
         return payment_processor.get_transaction_history(identifier=identifier)
@@ -61,7 +59,6 @@ def get_transactions(user: User = Security(get_current_user)):
 def get_balance(current_user: User = Security(get_current_user)):
 
     try:
-        payment_processor = get_payment_processor()
         if isinstance(payment_processor, IOTAPaymentController):
             return payment_processor.get_balance(identifier=current_user.email)
         return payment_processor.get_balance(
@@ -78,7 +75,6 @@ def get_balance(current_user: User = Security(get_current_user)):
              response_model=TransactionSchema)
 def post_transfer_funds(payload: TransferSchema, current_user: User = Security(get_current_user)):
 
-    payment_processor = get_payment_processor()
 
     try:
         if isinstance(payment_processor, IOTAPaymentController):
@@ -101,7 +97,6 @@ def post_transfer_funds(payload: TransferSchema, current_user: User = Security(g
             response_model=FundResponseModel)
 def get_request_funds(user: User = Security(get_current_user)):
     try:
-        payment_processor = get_payment_processor()
 
         if isinstance(payment_processor, EthereumSmartContract):
             raise HTTPException(status_code=400, detail="Faucet not available for Ethereum")
