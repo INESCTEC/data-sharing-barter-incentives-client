@@ -7,7 +7,7 @@ from payment.PaymentGateway.EthereumSmartContract.EthereumSmartContract import E
 from payment.PaymentGateway.IOTAPayment.IOTAPaymentController import IOTAPaymentController
 from payment.schemas.generic import TransactionSchema, BalanceSchema, TransactionHistorySchema, AccountSchema
 
-from app.dependencies import get_current_user, get_payment_processor
+from app.dependencies import get_current_user, payment_processor
 from app.models.models import User
 from app.schemas.schemas import TransferSchema
 from app.schemas.wallet.schema import FundResponseModel
@@ -15,7 +15,6 @@ from app.schemas.wallet.schema import FundResponseModel
 from payment.exceptions.wallet_exceptions import WalletException
 
 router = APIRouter()
-payment_processor = get_payment_processor()
 
 
 @router.get("/validate_transactions",
@@ -74,7 +73,6 @@ def get_balance(current_user: User = Security(get_current_user)):
              response_description="Transfer funds from one account to another",
              response_model=TransactionSchema)
 def post_transfer_funds(payload: TransferSchema, current_user: User = Security(get_current_user)):
-
 
     try:
         if isinstance(payment_processor, IOTAPaymentController):

@@ -8,7 +8,7 @@ from app.crud import add_token, cleanup_expired_tokens
 from app.dependencies import authenticate_user, create_access_token, pwd_context, create_refresh_token
 from app.dependencies import get_db_session, get_request_strategy, get_payload_from_refresh_token
 from app.models.models import User
-from app.routes.wallet import get_payment_processor
+from app.routes.wallet import payment_processor
 from app.schemas.schemas import UserLoginSchema, UserRegistrationSchema
 from app.schemas.user.schema import LoginResponseModel, RegisterResponseModel
 
@@ -89,8 +89,6 @@ def register_user(credentials: UserRegistrationSchema,
     if status_code == status.HTTP_201_CREATED:
 
         try:
-            # Initialize the wallet only if it's not already initialized
-            payment_processor = get_payment_processor()
             payment_processor.create_account(identifier=credentials.email)
         except Exception as e:
             status_code = status.HTTP_400_BAD_REQUEST

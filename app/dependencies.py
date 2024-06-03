@@ -39,7 +39,6 @@ def verify_password(plain_password, hashed_password):
 
 
 def authenticate_user(email: str, password: str, db: Session) -> User:
-
     # noinspection PyTypeChecker
     user = db.query(User).filter(User.email == email).first()
     if not user or not verify_password(password, user.password_hash):
@@ -112,7 +111,6 @@ def get_payment_processor() -> AbstractPayment:
 
 async def get_current_user(token: str = Depends(oauth2_scheme),
                            db: Session = Depends(get_db_session)):
-
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -143,3 +141,6 @@ def get_request_strategy() -> RequestContext:
         strategy = RequestsStrategy()
 
     return RequestContext(strategy)
+
+
+payment_processor = get_payment_processor()

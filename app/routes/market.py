@@ -9,7 +9,7 @@ from payment.PaymentGateway.IOTAPayment.IOTAPaymentController import IOTAPayment
 from payment.exceptions.wallet_exceptions import WalletException
 
 from app.apis.RequestStrategy import RequestContext
-from app.dependencies import get_db_session, get_request_strategy, get_current_user, get_payment_processor
+from app.dependencies import get_db_session, get_request_strategy, get_current_user, payment_processor
 from app.helpers.helper import get_header
 from app.schemas.market.schema import (MarketWalletResponseModel,
                                        UserMarketWalletResponseModel,
@@ -54,7 +54,6 @@ def get_user_address(request_strategy: RequestContext = Depends(get_request_stra
 def post_user_address(request_strategy: RequestContext = Depends(get_request_strategy),
                       user=Depends(get_current_user),
                       db=Depends(get_db_session)):
-    payment_processor = get_payment_processor()
 
     try:
         payment_processor.initialize_payment_method()
@@ -139,18 +138,6 @@ async def get_session_bid(background_tasks: BackgroundTasks,
                           db=Depends(get_db_session)):
     header = get_header(db=db)
 
-    for _ in enumerate(range(retries)):
-        try:
-            payment_processor = get_payment_processor()
-            payment_processor.initialize_payment_method()
-            break
-        except WalletException:
-            logger.warning("A wallet error occurred. Retrying...")
-            time.sleep(3)
-            continue
-    else:
-        raise HTTPException(status_code=400, detail="Failed to initialize wallet")
-
     try:
         response = request_strategy.make_request(endpoint="/market/wallet-address/",
                                                  method="get",
@@ -188,7 +175,6 @@ async def get_session_bid(background_tasks: BackgroundTasks,
             # Add background task for transaction execution and bid update
             background_tasks.add_task(
                 background_task_wrapper,
-                payment_processor,
                 user_address,
                 market_wallet_address,
                 payload.max_payment,
@@ -211,8 +197,7 @@ async def get_session_bid(background_tasks: BackgroundTasks,
         raise HTTPException(status_code=400, detail=str(e))
 
 
-async def execute_transaction_and_update_bid(payment_processor,
-                                             from_identifier,
+async def execute_transaction_and_update_bid(from_identifier,
                                              to_identifier,
                                              value,
                                              request_strategy,
@@ -236,16 +221,14 @@ async def execute_transaction_and_update_bid(payment_processor,
         logger.error(f"Error executing transaction: {str(e)}")
 
 
-def background_task_wrapper(payment_processor,
-                            from_identifier,
+def background_task_wrapper(from_identifier,
                             to_identifier,
                             value,
                             request_strategy,
                             bid_id,
                             header):
     asyncio.run(
-        execute_transaction_and_update_bid(payment_processor,
-                                           from_identifier,
+        execute_transaction_and_update_bid(from_identifier,
                                            to_identifier,
                                            value,
                                            request_strategy,
