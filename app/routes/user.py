@@ -11,7 +11,7 @@ from app.helpers.helper import get_header
 from app.models.models import User
 from app.routes.wallet import payment_processor
 from app.schemas.schemas import UserLoginSchema, UserRegistrationSchema
-from app.schemas.user.schema import LoginResponseModel, RegisterResponseModel
+from app.schemas.user.schema import LoginResponseModel, RegisterResponseModel, UserDetailResponseModel
 
 router = APIRouter()
 
@@ -44,7 +44,7 @@ async def login(credentials: UserLoginSchema,
     raise HTTPException(status_code=response.status_code, detail="Failed to login")
 
 
-@router.get("/details")
+@router.get("/details", response_model=UserDetailResponseModel)
 async def get_user_details(user=Depends(get_current_user),
                            request_strategy: RequestContext = Depends(get_request_strategy),
                            db_session: Session = Depends(get_db_session)):

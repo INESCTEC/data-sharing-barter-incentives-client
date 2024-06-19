@@ -7,6 +7,14 @@ class LoginResponseModel(BaseModel):
     token_type: str
 
 
+class UserDetailResponseModel(BaseModel):
+    fist_name: str
+    last_name: str
+    email: str
+    date_joined: str
+    last_login: str
+
+
 class RegisterDataModel(BaseModel):
     message: str
 
