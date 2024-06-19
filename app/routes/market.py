@@ -1,12 +1,11 @@
 import asyncio
-import time
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import Security
 from fastapi.responses import JSONResponse
 from loguru import logger
 from payment.PaymentGateway.IOTAPayment.IOTAPaymentController import IOTAPaymentController
-from payment.exceptions.wallet_exceptions import WalletException
 
 from app.apis.RequestStrategy import RequestContext
 from app.dependencies import get_db_session, get_request_strategy, get_current_user, payment_processor
@@ -15,6 +14,7 @@ from app.schemas.market.schema import (MarketWalletResponseModel,
                                        UserMarketWalletResponseModel,
                                        MarketSessionsResponse,
                                        MarketSessionStatus)
+from app.models.models import User
 from app.schemas.schemas import BidSchema
 
 router = APIRouter()
@@ -54,7 +54,6 @@ def get_user_address(request_strategy: RequestContext = Depends(get_request_stra
 def post_user_address(request_strategy: RequestContext = Depends(get_request_strategy),
                       user=Depends(get_current_user),
                       db=Depends(get_db_session)):
-
     try:
         payment_processor.initialize_payment_method()
         address = payment_processor.get_account_data(identifier=user.email).address
@@ -76,6 +75,7 @@ def post_user_address(request_strategy: RequestContext = Depends(get_request_str
             response_description="Get the market wallet address registered in the market",
             response_model=MarketWalletResponseModel)
 def get_market_address(request_strategy: RequestContext = Depends(get_request_strategy),
+                       user=Depends(get_current_user),
                        db=Depends(get_db_session)):
     try:
         header = get_header(db=db)
@@ -111,11 +111,21 @@ def get_session(status: Optional[MarketSessionStatus] = "open",
 
 
 @router.get("/session/balance")
-def get_session_balance(by_resource: Optional[bool] = True,
+def get_session_balance(by_resource: Optional[bool] = False,
                         request_strategy: RequestContext = Depends(get_request_strategy),
                         db=Depends(get_db_session)):
     endpoint = f"/market/session-balance/?balance_by_resource={by_resource}"
     return make_market_request(endpoint=endpoint,
+                               request_strategy=request_strategy,
+                               db_session=db)
+
+
+@router.get("/balance")
+def get_balance(request_strategy: RequestContext = Depends(get_request_strategy),
+                user: User = Depends(get_current_user),
+                db=Depends(get_db_session)):
+
+    return make_market_request(endpoint="/market/balance",
                                request_strategy=request_strategy,
                                db_session=db)
 
