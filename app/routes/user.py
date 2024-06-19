@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session
 from app.apis.RequestStrategy import RequestContext
 from app.crud import add_token, cleanup_expired_tokens
 from app.dependencies import authenticate_user, create_access_token, pwd_context, create_refresh_token
-from app.dependencies import get_db_session, get_request_strategy, get_payload_from_refresh_token
+from app.dependencies import get_db_session, get_request_strategy, get_payload_from_refresh_token, get_current_user
+from app.helpers.helper import get_header
 from app.models.models import User
 from app.routes.wallet import payment_processor
 from app.schemas.schemas import UserLoginSchema, UserRegistrationSchema
@@ -20,7 +21,6 @@ async def login(credentials: UserLoginSchema,
                 background_tasks: BackgroundTasks,
                 request_strategy: RequestContext = Depends(get_request_strategy),
                 db: Session = Depends(get_db_session)):
-
     response = request_strategy.make_request(endpoint="/token",
                                              method="post",
                                              data=credentials.model_dump())
@@ -44,9 +44,27 @@ async def login(credentials: UserLoginSchema,
     raise HTTPException(status_code=response.status_code, detail="Failed to login")
 
 
+@router.get("/details")
+async def get_user_details(user=Depends(get_current_user),
+                           request_strategy: RequestContext = Depends(get_request_strategy),
+                           db_session: Session = Depends(get_db_session)):
+    header = get_header(db=db_session)
+
+    try:
+        endpoint = '/user/list'
+        response = request_strategy.make_request(endpoint=endpoint,
+                                                 method="get",
+                                                 headers=header)
+        return JSONResponse(content=response.json(),
+                            status_code=200,
+                            media_type="application/json")
+
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+
+
 @router.post("/refresh", response_model=LoginResponseModel)
 async def post_refresh_token(refresh_token: str, db: Session = Depends(get_db_session)):
-
     email = get_payload_from_refresh_token(refresh_token=refresh_token)
     user = db.query(User).filter(User.email == email).first()
     if not user:
