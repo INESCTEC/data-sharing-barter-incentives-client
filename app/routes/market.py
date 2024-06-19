@@ -13,7 +13,9 @@ from app.helpers.helper import get_header
 from app.schemas.market.schema import (MarketWalletResponseModel,
                                        UserMarketWalletResponseModel,
                                        MarketSessionsResponse,
-                                       MarketSessionStatus)
+                                       MarketSessionStatus,
+                                       UserMarketBalanceSessionResponseSchema,
+                                       UserMarketBalanceResponseSchema)
 from app.models.models import User
 from app.schemas.schemas import BidSchema
 
@@ -110,7 +112,7 @@ def get_session(status: Optional[MarketSessionStatus] = "open",
                         media_type="application/json")
 
 
-@router.get("/session/balance")
+@router.get("/session/balance", response_model=UserMarketBalanceSessionResponseSchema)
 def get_session_balance(by_resource: Optional[bool] = False,
                         request_strategy: RequestContext = Depends(get_request_strategy),
                         db=Depends(get_db_session)):
@@ -120,7 +122,7 @@ def get_session_balance(by_resource: Optional[bool] = False,
                                db_session=db)
 
 
-@router.get("/balance")
+@router.get("/balance", response_model=UserMarketBalanceResponseSchema)
 def get_balance(request_strategy: RequestContext = Depends(get_request_strategy),
                 user: User = Depends(get_current_user),
                 db=Depends(get_db_session)):

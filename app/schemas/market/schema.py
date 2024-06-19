@@ -1,7 +1,7 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, UUID4
 from uuid import UUID
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from enum import Enum
 
 
@@ -10,6 +10,37 @@ class MarketSessionStatus(str, Enum):
     open = "open"
     closed = "closed"
     running = "running"
+
+
+class UserBalanceDetailSchema(BaseModel):
+    user: UUID4
+    balance: float
+    total_deposit: float
+    total_withdraw: float
+    total_payment: float
+    total_revenue: float
+    updated_at: datetime
+
+
+class SessionData(BaseModel):
+    market_session: int
+    user: UUID
+    resource: UUID
+    session_deposit: float
+    session_balance: float
+    session_payment: float
+    session_revenue: float
+    registered_at: datetime
+
+
+class UserMarketBalanceSessionResponseSchema(BaseModel):
+    code: int
+    data: List[SessionData]
+
+
+class UserMarketBalanceResponseSchema(BaseModel):
+    code: int
+    data: List[UserBalanceDetailSchema]
 
 
 class MarketWalletResponseDataModel(BaseModel):
