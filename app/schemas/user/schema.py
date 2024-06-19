@@ -1,4 +1,5 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
+from typing import Optional
 
 
 class LoginResponseModel(BaseModel):
@@ -13,6 +14,13 @@ class UserDetailResponseModel(BaseModel):
     email: str
     date_joined: str
     last_login: str
+
+
+class UserDetailUpdateModel(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
 
 
 class RegisterDataModel(BaseModel):
