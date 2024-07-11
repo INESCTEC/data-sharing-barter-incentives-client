@@ -57,7 +57,7 @@ https://documenter.getpostman.com/view/391645/2s9YJZ5Qc7
 2. Step 2: Validate email address
 3. Step 3: <strong>[USER]</strong> - Login
 4. Step 4: <strong>[WALLET]</strong> - Fund wallet
-5. Step 5: <strong>[WALLET]</strong> - Register Wallet in the market
+5. Step 5: <strong>[WALLET]</strong> - Register Wallet address in the market
 6. Step 6: <strong>[RESOURCE]</strong> - Create a new resource
 7. Step 7: <strong>[MARKET]</strong> - Get list of sessions
 8. Step 8: <strong>[MARKET]</strong> - Bid in an open session

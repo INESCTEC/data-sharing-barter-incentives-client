@@ -33,6 +33,7 @@ def list_resource(request_strategy: RequestContext = Depends(get_request_strateg
 @router.post("/", response_model=ResourceOutputSchema)
 def register_resource(payload: ResourceSchema,
                       request_strategy: RequestContext = Depends(get_request_strategy),
+                      user: User = Security(get_current_user),
                       db: Session = Depends(get_db_session)):
     try:
         header = get_header(db=db)
@@ -49,8 +50,8 @@ def register_resource(payload: ResourceSchema,
 def patch_resource(payload: ResourceSchema,
                    resource_id: UUID,
                    request_strategy: RequestContext = Depends(get_request_strategy),
+                   user: User = Security(get_current_user),
                    db: Session = Depends(get_db_session)):
-
     try:
         header = get_header(db=db)
         response = request_strategy.make_request(endpoint=f'/user/resource/{resource_id}',
@@ -66,7 +67,8 @@ def patch_resource(payload: ResourceSchema,
 
 @router.delete("/{resource_id}")
 def delete_resource(resource_id: int,
-                    request_strategy: RequestContext = Depends(get_request_strategy)):
+                    request_strategy: RequestContext = Depends(get_request_strategy),
+                    user: User = Security(get_current_user)):
     with get_db_session() as db:
         try:
             header = get_header(db=db)

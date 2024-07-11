@@ -6,10 +6,11 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from payment.AbstractPayment import AbstractPayment
-from payment.PaymentGateway.BlockchainDatabase import BlockchainDatabase
+from payment.database.PaymentDatabase import PaymentDatabase as BlockchainDatabase
 from payment.PaymentGateway.EthereumSmartContract.EthereumSmartContract import EthereumSmartContract
 from payment.PaymentGateway.IOTAPayment.IOTAPaymentController import IOTAPaymentController
-from payment.schemas.ethereum_schema import EthereumAccountSchema
+
+from payment.database.schemas.ethereum_schema import EthereumAccountSchema
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import sessionmaker
@@ -100,7 +101,7 @@ def get_payment_processor() -> AbstractPayment:
                 public_address='0x9AD9Ff0C9b1c5437548e350DD95526354e57b323',
                 private_key='03dfd0949c4798da957a811bbb07a56afea6706513f6b5f1b35759e0c1ade29e')
             config = smart_contract_config()
-            return EthereumSmartContract(config=config, account=account, blockchain_db=blockchain_db)
+            return EthereumSmartContract(config=config, account=account, payment_db=blockchain_db)
         elif payment_type == "FIAT":
             raise NotImplementedError("Fiat payment processor not yet supported")
         else:
@@ -111,6 +112,7 @@ def get_payment_processor() -> AbstractPayment:
 
 async def get_current_user(token: str = Depends(oauth2_scheme),
                            db: Session = Depends(get_db_session)):
+
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",

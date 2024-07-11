@@ -19,7 +19,6 @@ async def post_raw_data(payload: MeasurementsSchema,
                         request_strategy=Depends(get_request_strategy),
                         db=Depends(get_db_session),
                         user: User = Security(get_current_user)):
-
     header = get_header(db=db)
 
     try:
@@ -38,8 +37,8 @@ async def get_raw_data(start_date: str,
                        end_date: str,
                        resource_id: uuid.UUID,
                        request_strategy=Depends(get_request_strategy),
+                       user: User = Security(get_current_user),
                        db=Depends(get_db_session)):
-
     try:
         header = get_header(db=db)
         endpoint = f"data/raw-data/?start_date={start_date}&end_date={end_date}&resource={resource_id}"
@@ -57,8 +56,8 @@ async def get_forecast(start_date: str,
                        end_date: str,
                        resource_id: uuid.UUID,
                        request_strategy=Depends(get_request_strategy),
+                       user: User = Security(get_current_user),
                        db=Depends(get_db_session)):
-
     try:
         header = get_header(db=db)
         response = request_strategy.make_request(endpoint=f"/data/market-forecasts/?"
@@ -78,8 +77,8 @@ async def get_forecast(start_date: str,
                        end_date: str,
                        resource_id: uuid.UUID,
                        request_strategy=Depends(get_request_strategy),
+                       user: User = Security(get_current_user),
                        db=Depends(get_db_session)):
-
     try:
         header = get_header(db=db)
         rsp_forecasts = request_strategy.make_request(endpoint=f"/data/market-forecasts/?"

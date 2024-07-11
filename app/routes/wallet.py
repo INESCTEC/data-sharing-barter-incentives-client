@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Response
 from fastapi import Security
 from payment.PaymentGateway.EthereumSmartContract.EthereumSmartContract import EthereumSmartContract
 from payment.PaymentGateway.IOTAPayment.IOTAPaymentController import IOTAPaymentController
-from payment.schemas.generic import TransactionSchema, BalanceSchema, TransactionHistorySchema, AccountSchema
+from payment.database.schemas.generic import TransactionHistorySchema, TransactionSchema, BalanceSchema, AccountSchema
 
 from app.dependencies import get_current_user, payment_processor
 from app.models.models import User
@@ -60,8 +60,10 @@ def get_balance(current_user: User = Security(get_current_user)):
     try:
         if isinstance(payment_processor, IOTAPaymentController):
             return payment_processor.get_balance(identifier=current_user.email)
-        return payment_processor.get_balance(
+        balance = payment_processor.get_balance(
             identifier=payment_processor.get_account_data(current_user.email).address)
+        balance.balance /= 1e18
+        return balance
     except WalletException as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
