@@ -93,7 +93,7 @@ def get_payment_processor() -> AbstractPayment:
         blockchain_db = BlockchainDatabase(engine)
         payment_type = os.getenv("PAYMENT_PROCESSOR_TYPE", "IOTA")  # Default to IOTA if not specified
         if payment_type == "IOTA":
-            payment_controller = IOTAPaymentController(config=wallet_config(), blockchain_db=blockchain_db)
+            payment_controller = IOTAPaymentController(config=wallet_config(), payment_db=blockchain_db)
             payment_controller.initialize_payment_method()
             return payment_controller
         elif payment_type == "ERC20":
