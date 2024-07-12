@@ -66,16 +66,17 @@ def patch_resource(payload: ResourceSchema,
 
 
 @router.delete("/{resource_id}")
-def delete_resource(resource_id: int,
+def delete_resource(resource_id: UUID,
                     request_strategy: RequestContext = Depends(get_request_strategy),
-                    user: User = Security(get_current_user)):
-    with get_db_session() as db:
-        try:
-            header = get_header(db=db)
-            response = request_strategy.make_request(endpoint=f'/user/resource/{resource_id}',
-                                                     method='delete',
-                                                     headers=header)
-        except Exception as e:
-            raise HTTPException(status_code=400, detail=str(e))
-
+                    user: User = Security(get_current_user),
+                    db: Session = Depends(get_db_session)):
+    try:
+        header = get_header(db=db)
+        response = request_strategy.make_request(endpoint=f'/user/resource/{resource_id}',
+                                                 method='delete',
+                                                 headers=header)
+        
         return Response(content=json.dumps(response.json()), status_code=200, media_type="application/json")
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
