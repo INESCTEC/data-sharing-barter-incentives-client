@@ -75,7 +75,7 @@ def delete_resource(resource_id: UUID,
         response = request_strategy.make_request(endpoint=f'/user/resource/{resource_id}',
                                                  method='delete',
                                                  headers=header)
-        
+
         return Response(content=json.dumps(response.json()), status_code=200, media_type="application/json")
 
     except Exception as e:

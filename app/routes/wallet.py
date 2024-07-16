@@ -3,6 +3,7 @@ from typing import Dict, Any
 
 from fastapi import APIRouter, HTTPException, Response
 from fastapi import Security
+from fastapi.responses import JSONResponse
 from payment.PaymentGateway.EthereumSmartContract.EthereumSmartContract import EthereumSmartContract
 from payment.PaymentGateway.IOTAPayment.IOTAPaymentController import IOTAPaymentController
 from payment.database.schemas.generic import TransactionHistorySchema, TransactionSchema, BalanceSchema, AccountSchema
@@ -15,6 +16,15 @@ from app.schemas.wallet.schema import FundResponseModel
 from payment.exceptions.wallet_exceptions import WalletException
 
 router = APIRouter()
+
+# Unit ΞTK
+
+
+@router.post("/")
+def create_wallet(user: User = Security(get_current_user)):
+    account = payment_processor.create_account(identifier=user.email)
+    if account:
+        return JSONResponse(content={"message": "Account generated successfully"}, status_code=200)
 
 
 @router.get("/validate_transactions",
@@ -59,11 +69,15 @@ def get_balance(current_user: User = Security(get_current_user)):
 
     try:
         if isinstance(payment_processor, IOTAPaymentController):
-            return payment_processor.get_balance(identifier=current_user.email)
-        balance = payment_processor.get_balance(
-            identifier=payment_processor.get_account_data(current_user.email).address)
-        balance.balance /= 1e18
-        return balance
+            balance = payment_processor.get_balance(identifier=current_user.email)
+            # Convert balance to a float, perform division, then convert back to string if needed
+            balance.balance = int(balance.balance) / 1e6
+            return balance
+        elif isinstance(payment_processor, EthereumSmartContract):
+            balance = payment_processor.get_balance(
+                identifier=payment_processor.get_account_data(current_user.email).address)
+            balance.balance /= 1e18
+            return balance
     except WalletException as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:

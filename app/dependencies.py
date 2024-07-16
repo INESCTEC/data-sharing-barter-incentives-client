@@ -7,7 +7,8 @@ from jose import jwt, JWTError
 from passlib.context import CryptContext
 from payment.AbstractPayment import AbstractPayment
 from payment.database.PaymentDatabase import PaymentDatabase as BlockchainDatabase
-from payment.PaymentGateway.EthereumSmartContract.EthereumSmartContract import EthereumSmartContract
+from payment.PaymentGateway.EthereumSmartContract.EthereumSmartContract import (EthereumSmartContract,
+                                                                                ethereum_provider)
 from payment.PaymentGateway.IOTAPayment.IOTAPaymentController import IOTAPaymentController
 
 from payment.database.schemas.ethereum_schema import EthereumAccountSchema
@@ -89,19 +90,39 @@ def get_db_session():
 
 
 def get_payment_processor() -> AbstractPayment:
+
+    blockchain_db = BlockchainDatabase(engine)
+    payment_type = os.getenv("PAYMENT_PROCESSOR_TYPE", "IOTA")  # Default to IOTA if not specified
+
     try:
-        blockchain_db = BlockchainDatabase(engine)
-        payment_type = os.getenv("PAYMENT_PROCESSOR_TYPE", "IOTA")  # Default to IOTA if not specified
         if payment_type == "IOTA":
             payment_controller = IOTAPaymentController(config=wallet_config(), payment_db=blockchain_db)
             payment_controller.initialize_payment_method()
             return payment_controller
+
         elif payment_type == "ERC20":
-            account = EthereumAccountSchema(
-                public_address='0x9AD9Ff0C9b1c5437548e350DD95526354e57b323',
-                private_key='03dfd0949c4798da957a811bbb07a56afea6706513f6b5f1b35759e0c1ade29e')
             config = smart_contract_config()
-            return EthereumSmartContract(config=config, account=account, payment_db=blockchain_db)
+            provider_url = os.getenv('WEB3_PROVIDER_URL')
+            if not provider_url:
+                raise ValueError("WEB3_PROVIDER_URL environment variable not set")
+            w3 = ethereum_provider(url=provider_url)
+            eth_public_key = os.getenv('ETH_PUBLIC_KEY')
+            eth_private_key = os.getenv('ETH_PRIVATE_KEY')
+
+            if eth_public_key and eth_private_key:
+                account = EthereumAccountSchema(
+                    public_address=eth_public_key,
+                    private_key=eth_private_key)
+
+                return EthereumSmartContract(config=config,
+                                             account=account,
+                                             payment_db=blockchain_db,
+                                             web3_instance=w3)
+
+            return EthereumSmartContract(config=config,
+                                         payment_db=blockchain_db,
+                                         web3_instance=w3)
+
         elif payment_type == "FIAT":
             raise NotImplementedError("Fiat payment processor not yet supported")
         else:

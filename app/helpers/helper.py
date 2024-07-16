@@ -9,7 +9,6 @@ from sqlalchemy.orm import Session
 
 def smart_contract_config() -> SmartContractConfig:
     return SmartContractConfig(
-        web3_provider_url=os.getenv("WEB3_PROVIDER_URL"),
         contract_address=os.getenv("CONTRACT_ADDRESS"),
         abi=TokenABI.ETK)
 

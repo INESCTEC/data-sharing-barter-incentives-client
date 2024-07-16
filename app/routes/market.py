@@ -2,7 +2,6 @@ import asyncio
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
-from fastapi import Security
 from fastapi.responses import JSONResponse
 from loguru import logger
 from payment.PaymentGateway.IOTAPayment.IOTAPaymentController import IOTAPaymentController
@@ -10,13 +9,13 @@ from payment.PaymentGateway.IOTAPayment.IOTAPaymentController import IOTAPayment
 from app.apis.RequestStrategy import RequestContext
 from app.dependencies import get_db_session, get_request_strategy, get_current_user, payment_processor
 from app.helpers.helper import get_header
+from app.models.models import User
 from app.schemas.market.schema import (MarketWalletResponseModel,
                                        UserMarketWalletResponseModel,
                                        MarketSessionsResponse,
                                        MarketSessionStatus,
                                        UserMarketBalanceSessionResponseSchema,
                                        UserMarketBalanceResponseSchema)
-from app.models.models import User
 from app.schemas.schemas import BidSchema
 
 router = APIRouter()
@@ -222,7 +221,7 @@ async def execute_transaction_and_update_bid(from_identifier,
             to_identifier=to_identifier,
             value=value
         )
-        data = {"tangle_msg_id": transaction.tx_receipt}
+        data = {"tangle_msg_id": transaction.receipt}
 
         await asyncio.to_thread(request_strategy.make_request,
                                 endpoint=f'/market/bid/{bid_id}',
