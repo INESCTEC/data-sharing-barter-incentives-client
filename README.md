@@ -100,9 +100,13 @@ The documentation for the Predico Datamarket API can be found at: http://localho
 | **Login**<br>Entrypoint to the Barter Client Application. | **Dashboard**<br>Overview of account activities, market sessions, and available resources|
 
 
-- Windows:
-- MacOS:
-- Linux:
+#### Download application
+Can download through the releases page on the repository or alternatively through the following links (latest):
+
+- Windows: https://tinyurl.com/zazpbakt
+
+[//]: # (- MacOS: )
+- Linux: https://tinyurl.com/mrvsjhde
 
 [//]: # (The UI for the Predico Datamarket API can be found at: http://localhost:8000)
 [//]: # (https://github.com/jyotiv2023/admindash?ref=reactjsexample.com)
