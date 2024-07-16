@@ -125,7 +125,6 @@ def get_session_balance(by_resource: Optional[bool] = False,
 def get_balance(request_strategy: RequestContext = Depends(get_request_strategy),
                 user: User = Depends(get_current_user),
                 db=Depends(get_db_session)):
-
     return make_market_request(endpoint="/market/balance",
                                request_strategy=request_strategy,
                                db_session=db)
@@ -147,6 +146,7 @@ async def get_session_bid(background_tasks: BackgroundTasks,
                           request_strategy: RequestContext = Depends(get_request_strategy),
                           user=Depends(get_current_user),
                           db=Depends(get_db_session)):
+
     header = get_header(db=db)
 
     try:

@@ -3,7 +3,8 @@ from datetime import datetime
 from enum import Enum
 from typing import List
 
-from pydantic import BaseModel, Field, EmailStr, field_validator
+from pydantic import BaseModel, Field, EmailStr, field_validator, model_validator
+from app.dependencies import payment_processor
 from pydantic import UUID4
 
 
@@ -36,6 +37,16 @@ class TransferSchema(BaseModel):
     amount: float
     identifier: str  # The email address or public address of the recipient
 
+    @model_validator(mode='before')
+    def convert_amount(cls, values):
+        if 'amount' in values:
+            values['amount'] = payment_processor.unit_conversion(
+                value=float(values['amount']),
+                unit=payment_processor.BASE_UNIT,
+                target_unit=payment_processor.TRANSACTION_UNIT
+            )
+        return values
+
 
 class UserLoginSchema(BaseModel):
     email: EmailStr
@@ -61,9 +72,27 @@ class BidSchema(BaseModel):
         else:
             raise ValueError("Invalid resource id")
 
-    # @field_validator("max_payment")
-    # def check_max_payment(cls, value):
-    #     return int(value * 1000000)
+    @model_validator(mode='before')
+    def convert_max_payment(cls, values):
+        # Assuming payment_processor is available here as an imported module or object
+        # Make sure to import or define payment_processor before using it
+        if 'max_payment' in values:
+            values['max_payment'] = payment_processor.unit_conversion(
+                value=float(values['max_payment']),
+                unit=payment_processor.BASE_UNIT,
+                target_unit=payment_processor.TRANSACTION_UNIT
+            )
+        return values
+
+    @model_validator(mode='before')
+    def convert_bid_price(cls, values):
+        if 'bid_price' in values:
+            values['bid_price'] = payment_processor.unit_conversion(
+                value=float(values['bid_price']),
+                unit=payment_processor.BASE_UNIT,
+                target_unit=payment_processor.TRANSACTION_UNIT
+            )
+        return values
 
 
 class UserRole(str, Enum):

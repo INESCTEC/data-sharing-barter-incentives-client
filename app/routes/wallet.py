@@ -59,7 +59,12 @@ def get_transactions_by(payload: Dict[str, Any],
 def get_transactions(user: User = Security(get_current_user)):
     try:
         identifier = payment_processor.get_account_data(user.email).address
-        return payment_processor.get_transaction_history(identifier=identifier)
+        transactions = payment_processor.get_transaction_history(identifier=identifier)
+        for transaction in transactions.transactions:
+            transaction.value = payment_processor.unit_conversion(float(transaction.value),
+                                                                  payment_processor.TRANSACTION_UNIT,
+                                                                  payment_processor.BASE_UNIT)
+        return transactions
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -71,13 +76,16 @@ def get_balance(current_user: User = Security(get_current_user)):
         if isinstance(payment_processor, IOTAPaymentController):
             balance = payment_processor.get_balance(identifier=current_user.email)
             # Convert balance to a float, perform division, then convert back to string if needed
-            balance.balance = int(balance.balance) / 1e6
-            return balance
         elif isinstance(payment_processor, EthereumSmartContract):
             balance = payment_processor.get_balance(
                 identifier=payment_processor.get_account_data(current_user.email).address)
-            balance.balance /= 1e18
-            return balance
+        else:
+            raise ValueError("Unsupported payment processor type")
+
+        balance.balance = payment_processor.unit_conversion(float(balance.balance),
+                                                            payment_processor.TRANSACTION_UNIT,
+                                                            payment_processor.BASE_UNIT)
+        return balance
     except WalletException as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
@@ -92,7 +100,6 @@ def post_transfer_funds(payload: TransferSchema, current_user: User = Security(g
 
     try:
         if isinstance(payment_processor, IOTAPaymentController):
-            payload.amount = int(payload.amount)
             from_identifier = current_user.email
         else:
             from_identifier = payment_processor.get_account_data(identifier=current_user.email).address
