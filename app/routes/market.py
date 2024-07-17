@@ -91,6 +91,20 @@ def get_market_address(request_strategy: RequestContext = Depends(get_request_st
                         media_type="application/json")
 
 
+@router.get("/unit")
+def get_unit(user=Depends(get_current_user)):
+
+    response_content = {
+        "base_unit": payment_processor.BASE_UNIT,
+        "transaction_unit": payment_processor.TRANSACTION_UNIT,
+        "rates": payment_processor.CONVERSION_RATES
+    }
+
+    return JSONResponse(content=response_content,
+                        status_code=200,
+                        media_type="application/json")
+
+
 @router.get("/session", response_model=MarketSessionsResponse)
 def get_session(status: Optional[MarketSessionStatus] = "open",
                 request_strategy: RequestContext = Depends(get_request_strategy),
