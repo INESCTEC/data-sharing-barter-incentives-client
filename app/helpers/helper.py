@@ -1,10 +1,40 @@
 import os
+from datetime import datetime
 
-from payment.PaymentGateway.IOTAPayment.IOTAPaymentController import WalletConfig
-from payment.PaymentGateway.EthereumSmartContract.EthereumSmartContract import SmartContractConfig, TokenABI
-from app.models.models import Token
-from app.crud import get_token
+import numpy as np
+import pandas as pd
+from payment.PaymentGateway.EthereumPayment.EthereumSmartContract import (SmartContractConfig,
+                                                                          TokenABI)
+from payment.PaymentGateway.IOTAPayment.IOTAPayment import WalletConfig
 from sqlalchemy.orm import Session
+
+from app.crud import get_token
+from app.models.models import Token
+
+
+def generate_data(csv_path: str):
+    # Define the start date
+    today = datetime.today()
+    start_date = today - pd.Timedelta(days=30)  # 30 days ago
+
+    # Generate a date range for one month with hourly frequency
+    # One month of hourly data
+    date_range = pd.date_range(start_date.strftime('%Y-%m-%d'), periods=24 * 30, freq='H')
+
+    # Generate random values for the 'value' column
+    np.random.seed(0)  # For reproducibility
+    values = np.random.uniform(1.0, 10.0, size=len(date_range))
+
+    # Create a DataFrame
+    data = {
+        'value': values,
+        'datetime': date_range
+    }
+    df = pd.DataFrame(data)
+
+    # Save DataFrame to CSV
+
+    df.to_csv(csv_path, index=False)
 
 
 def smart_contract_config() -> SmartContractConfig:

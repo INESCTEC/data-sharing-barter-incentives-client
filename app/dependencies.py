@@ -6,12 +6,10 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from payment.AbstractPayment import AbstractPayment
+from payment.PaymentGateway.EthereumPayment.EthereumSmartContract import (EthereumSmartContract,
+                                                                          ethereum_provider)
+from payment.PaymentGateway.IOTAPayment.IOTAPayment import IOTAPaymentController
 from payment.database.PaymentDatabase import PaymentDatabase as BlockchainDatabase
-from payment.PaymentGateway.EthereumSmartContract.EthereumSmartContract import (EthereumSmartContract,
-                                                                                ethereum_provider)
-from payment.PaymentGateway.IOTAPayment.IOTAPaymentController import IOTAPaymentController
-
-from payment.database.schemas.ethereum_schema import EthereumAccountSchema
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import sessionmaker
@@ -90,7 +88,6 @@ def get_db_session():
 
 
 def get_payment_processor() -> AbstractPayment:
-
     blockchain_db = BlockchainDatabase(engine)
     payment_type = os.getenv("PAYMENT_PROCESSOR_TYPE", "IOTA")  # Default to IOTA if not specified
 
@@ -106,21 +103,11 @@ def get_payment_processor() -> AbstractPayment:
             if not provider_url:
                 raise ValueError("WEB3_PROVIDER_URL environment variable not set")
             w3 = ethereum_provider(url=provider_url)
-            eth_public_key = os.getenv('ETH_PUBLIC_KEY')
-            eth_private_key = os.getenv('ETH_PRIVATE_KEY')
-
-            if eth_public_key and eth_private_key:
-                account = EthereumAccountSchema(
-                    public_address=eth_public_key,
-                    private_key=eth_private_key)
-
-                return EthereumSmartContract(config=config,
-                                             account=account,
-                                             payment_db=blockchain_db,
-                                             web3_instance=w3)
+            eth_private_key = os.getenv('ETH_PRIVATE_KEY', None)
 
             return EthereumSmartContract(config=config,
                                          payment_db=blockchain_db,
+                                         private_key=eth_private_key,
                                          web3_instance=w3)
 
         elif payment_type == "FIAT":
@@ -133,7 +120,6 @@ def get_payment_processor() -> AbstractPayment:
 
 async def get_current_user(token: str = Depends(oauth2_scheme),
                            db: Session = Depends(get_db_session)):
-
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",

@@ -5,6 +5,7 @@ from typing import List
 
 from pydantic import BaseModel, Field, EmailStr, field_validator, model_validator
 from app.dependencies import payment_processor
+from payment.AbstractPayment import ConversionType
 from pydantic import UUID4
 
 
@@ -40,11 +41,12 @@ class TransferSchema(BaseModel):
     @model_validator(mode='before')
     def convert_amount(cls, values):
         if 'amount' in values:
-            values['amount'] = payment_processor.unit_conversion(
+            values['amount'] = int(payment_processor.unit_conversion(
                 value=float(values['amount']),
                 unit=payment_processor.BASE_UNIT,
-                target_unit=payment_processor.TRANSACTION_UNIT
-            )
+                target_unit=payment_processor.TRANSACTION_UNIT,
+                conversion_type=ConversionType.BASE_TO_TRANSACTION
+            ))
         return values
 
 
