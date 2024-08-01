@@ -26,7 +26,7 @@ def make_market_request(endpoint: str, request_strategy: RequestContext, db_sess
     try:
         header = get_header(db=db_session)
         response = request_strategy.make_request(endpoint=endpoint, method="get", headers=header)
-        return JSONResponse(content=response.json(), status_code=200, media_type="application/json")
+        return JSONResponse(content=response.json(), status_code=response.status_code, media_type="application/json")
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -45,7 +45,7 @@ def get_user_address(request_strategy: RequestContext = Depends(get_request_stra
         raise HTTPException(status_code=400, detail=str(e))
 
     return JSONResponse(content=response.json(),
-                        status_code=200,
+                        status_code=response.status_code,
                         media_type="application/json")
 
 
@@ -68,7 +68,7 @@ def post_user_address(request_strategy: RequestContext = Depends(get_request_str
         raise HTTPException(status_code=400, detail=str(e))
 
     return JSONResponse(content=response.json(),
-                        status_code=200,
+                        status_code=response.status_code,
                         media_type="application/json")
 
 
@@ -87,7 +87,7 @@ def get_market_address(request_strategy: RequestContext = Depends(get_request_st
         raise HTTPException(status_code=400, detail=str(e))
 
     return JSONResponse(content=response.json(),
-                        status_code=200,
+                        status_code=response.status_code,
                         media_type="application/json")
 
 
@@ -101,7 +101,7 @@ def get_unit(user=Depends(get_current_user)):
     }
 
     return JSONResponse(content=response_content,
-                        status_code=200,
+                        status_code=response.status_code,
                         media_type="application/json")
 
 
@@ -121,7 +121,7 @@ def get_session(status: Optional[MarketSessionStatus] = "open",
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return JSONResponse(content=response.json(),
-                        status_code=200,
+                        status_code=response.status_code,
                         media_type="application/json")
 
 
@@ -273,5 +273,5 @@ def session_transactions(request_strategy: RequestContext = Depends(get_request_
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return JSONResponse(content=response.json(),
-                        status_code=200,
+                        status_code=response.status_code,
                         media_type="application/json")

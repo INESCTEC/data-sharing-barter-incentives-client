@@ -26,7 +26,7 @@ def list_resource(request_strategy: RequestContext = Depends(get_request_strateg
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return Response(content=json.dumps(response.json()),
-                    status_code=200,
+                    status_code=response.status_code,
                     media_type="application/json")
 
 
@@ -43,7 +43,9 @@ def register_resource(payload: ResourceSchema,
                                                  data=payload.model_dump(exclude_none=True))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-    return Response(content=json.dumps(response.json()), status_code=200, media_type="application/json")
+    return Response(content=json.dumps(response.json()),
+                    status_code=response.status_code,
+                    media_type="application/json")
 
 
 @router.patch("/{resource_id}", response_model=ResourceOutputSchema)
@@ -62,7 +64,9 @@ def patch_resource(payload: ResourceSchema,
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    return Response(content=json.dumps(response.json()), status_code=200, media_type="application/json")
+    return Response(content=json.dumps(response.json()),
+                    status_code=response.status_code,
+                    media_type="application/json")
 
 
 @router.delete("/{resource_id}")
@@ -76,7 +80,9 @@ def delete_resource(resource_id: UUID,
                                                  method='delete',
                                                  headers=header)
 
-        return Response(content=json.dumps(response.json()), status_code=200, media_type="application/json")
+        return Response(content=json.dumps(response.json()),
+                        status_code=response.status_code,
+                        media_type="application/json")
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
