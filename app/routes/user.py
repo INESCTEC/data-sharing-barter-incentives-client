@@ -1,3 +1,4 @@
+from requests.exceptions import ConnectionError
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from fastapi.responses import JSONResponse
 from loguru import logger
@@ -105,29 +106,29 @@ async def post_refresh_token(refresh_token: str, db: Session = Depends(get_db_se
 def register_user(credentials: UserRegistrationSchema,
                   request_strategy: RequestContext = Depends(get_request_strategy),
                   db: Session = Depends(get_db_session)):
-    # noinspection PyTypeChecker
-    user = db.query(User).filter(User.email == credentials.email).first()
+    try:
+        response = request_strategy.make_request(data=credentials.model_dump(),
+                                                 endpoint="/user/register/",
+                                                 method="post")
 
-    if user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-
-    # If user does not exist, proceed with registration logic
-    # Here you would hash the password, create a new User object, add to the session, and commit.
-    # For example:
-    hashed_password = pwd_context.hash(credentials.password)
-    new_user = User(email=credentials.email, password_hash=hashed_password)
-    db.add(new_user)
-    db.commit()
-
-    response = request_strategy.make_request(data=credentials.model_dump(),
-                                             endpoint="/user/register/",
-                                             method="post")
+    except ConnectionError as e:
+        return JSONResponse(content={"error": str(e)}, status_code=503)
 
     # Directly return the remote APIs response
     content = response.json()  # Assuming the remote API returns JSON
     status_code = response.status_code
 
     if status_code == status.HTTP_201_CREATED:
+        # noinspection PyTypeChecker
+        user = db.query(User).filter(User.email == credentials.email).first()
+        if not user:
+            # If user does not exist, proceed with registration logic
+            # Here you would hash the password, create a new User object, add to the session, and commit.
+            # For example:
+            hashed_password = pwd_context.hash(credentials.password)
+            new_user = User(email=credentials.email, password_hash=hashed_password)
+            db.add(new_user)
+            db.commit()
 
         try:
             payment_processor.create_account(identifier=credentials.email)
