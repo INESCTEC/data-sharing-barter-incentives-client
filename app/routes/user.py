@@ -11,7 +11,7 @@ from app.dependencies import get_db_session, get_request_strategy, get_payload_f
 from app.helpers.helper import get_header
 from app.models.models import User
 from app.routes.wallet import payment_processor
-from app.schemas.schemas import UserLoginSchema, UserRegistrationSchema
+from app.schemas.schemas import UserLoginSchema, UserRegistrationSchema, UserSocialLoginSchema
 from app.schemas.user.schema import (LoginResponseModel, RegisterResponseModel, UserDetailResponseModel,
                                      UserDetailUpdateModel)
 
@@ -36,8 +36,8 @@ async def login(credentials: UserLoginSchema,
     if response.status_code == status.HTTP_200_OK:
         # update the token in the database
         logger.debug(f"Adding token to database: {response.json()}")
-        add_token(db=db, token=response.json()['access'])
-        background_tasks.add_task(cleanup_expired_tokens, db)
+        add_token(db=db, user_email=user.email, token=response.json()['access'])
+        background_tasks.add_task(cleanup_expired_tokens, db, user.email)
         return JSONResponse({"access_token": access_token,
                              "refresh_token": refresh_token,
                              "token_type": "bearer"})
@@ -118,7 +118,7 @@ def register_user(credentials: UserRegistrationSchema,
     content = response.json()  # Assuming the remote API returns JSON
     status_code = response.status_code
 
-    if status_code == status.HTTP_201_CREATED:
+    if (status_code == status.HTTP_201_CREATED) or (status_code == status.HTTP_409_CONFLICT):
         # noinspection PyTypeChecker
         user = db.query(User).filter(User.email == credentials.email).first()
         if not user:
@@ -139,8 +139,7 @@ def register_user(credentials: UserRegistrationSchema,
             # Request funds from the faucet for each account
 
         return JSONResponse(content=content,
-                            status_code=status_code,
+                            status_code=status.HTTP_201_CREATED,
                             media_type="application/json")
-
     else:
         raise HTTPException(status_code=status_code, detail=content)

@@ -23,7 +23,7 @@ db_password = os.getenv("POSTGRES_PASSWORD", "predico")
 database_host = os.getenv("POSTGRES_HOST", "localhost")
 database_name = os.getenv("POSTGRES_DB", "predico")
 
-SQLALCHEMY_DATABASE_URL = f"postgresql://{db_username}:{db_password}@{database_host}/{database_name}"
+SQLALCHEMY_DATABASE_URL = f"postgresql://{db_username}:{db_password}@{database_host}:5555/{database_name}"
 engine = create_engine(SQLALCHEMY_DATABASE_URL, pool_size=20, max_overflow=40, pool_recycle=3600)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -88,12 +88,11 @@ def get_db_session():
 
 
 def get_payment_processor() -> AbstractPayment:
-    blockchain_db = BlockchainDatabase(engine)
     payment_type = os.getenv("PAYMENT_PROCESSOR_TYPE", "IOTA")  # Default to IOTA if not specified
 
     try:
         if payment_type == "IOTA":
-            payment_controller = IOTAPaymentController(config=wallet_config(), payment_db=blockchain_db)
+            payment_controller = IOTAPaymentController(config=wallet_config())
             payment_controller.initialize_payment_method()
             return payment_controller
 
@@ -106,7 +105,6 @@ def get_payment_processor() -> AbstractPayment:
             eth_private_key = os.getenv('ETH_PRIVATE_KEY', None)
 
             return EthereumSmartContract(config=config,
-                                         payment_db=blockchain_db,
                                          private_key=eth_private_key,
                                          web3_instance=w3)
 

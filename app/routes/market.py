@@ -1,7 +1,7 @@
 import asyncio
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, status as http_status
 from fastapi.responses import JSONResponse
 from loguru import logger
 from payment.PaymentGateway.IOTAPayment.IOTAPayment import IOTAPaymentController
@@ -22,9 +22,9 @@ router = APIRouter()
 retries = 3
 
 
-def make_market_request(endpoint: str, request_strategy: RequestContext, db_session):
+def make_market_request(endpoint: str, request_strategy: RequestContext, db_session, user_email: str):
     try:
-        header = get_header(db=db_session)
+        header = get_header(db=db_session, user_email=user_email)
         response = request_strategy.make_request(endpoint=endpoint, method="get", headers=header)
         return JSONResponse(content=response.json(), status_code=response.status_code, media_type="application/json")
     except Exception as e:
@@ -35,9 +35,10 @@ def make_market_request(endpoint: str, request_strategy: RequestContext, db_sess
             response_description="Get the user wallet address registered in the market",
             response_model=UserMarketWalletResponseModel)
 def get_user_address(request_strategy: RequestContext = Depends(get_request_strategy),
+                     user=Depends(get_current_user),
                      db=Depends(get_db_session)):
     try:
-        header = get_header(db=db)
+        header = get_header(db=db, user_email=user.email)
         response = request_strategy.make_request(endpoint="/user/wallet-address/",
                                                  method="get",
                                                  headers=header)
@@ -58,8 +59,7 @@ def post_user_address(request_strategy: RequestContext = Depends(get_request_str
     try:
         payment_processor.initialize_payment_method()
         address = payment_processor.get_account_data(identifier=user.email).address
-
-        header = get_header(db=db)
+        header = get_header(db=db, user_email=user.email)
         response = request_strategy.make_request(endpoint="/user/wallet-address/",
                                                  method="post",
                                                  data={"wallet_address": address},
@@ -79,7 +79,7 @@ def get_market_address(request_strategy: RequestContext = Depends(get_request_st
                        user=Depends(get_current_user),
                        db=Depends(get_db_session)):
     try:
-        header = get_header(db=db)
+        header = get_header(db=db, user_email=user.email)
         response = request_strategy.make_request(endpoint="/market/wallet-address/",
                                                  method="get",
                                                  headers=header)
@@ -101,19 +101,20 @@ def get_unit(user=Depends(get_current_user)):
     }
 
     return JSONResponse(content=response_content,
-                        status_code=response.status_code,
+                        status_code=http_status.HTTP_200_OK,
                         media_type="application/json")
 
 
 @router.get("/session", response_model=MarketSessionsResponse)
 def get_session(status: Optional[MarketSessionStatus] = "open",
                 request_strategy: RequestContext = Depends(get_request_strategy),
+                user=Depends(get_current_user),
                 db=Depends(get_db_session)):
     try:
         endpoint = "/market/session/"
         if status:
             endpoint += f"?market_session_status={status}"
-        header = get_header(db=db)
+        header = get_header(db=db, user_email=user.email)
         response = request_strategy.make_request(endpoint=endpoint,
                                                  method="get",
                                                  headers=header)
@@ -128,11 +129,13 @@ def get_session(status: Optional[MarketSessionStatus] = "open",
 @router.get("/session/balance", response_model=UserMarketBalanceSessionResponseSchema)
 def get_session_balance(by_resource: Optional[bool] = False,
                         request_strategy: RequestContext = Depends(get_request_strategy),
+                        user: User = Depends(get_current_user),
                         db=Depends(get_db_session)):
     endpoint = f"/market/session-balance/?balance_by_resource={by_resource}"
     return make_market_request(endpoint=endpoint,
                                request_strategy=request_strategy,
-                               db_session=db)
+                               db_session=db,
+                               user_email=user.email)
 
 
 @router.get("/balance", response_model=UserMarketBalanceResponseSchema)
@@ -141,17 +144,20 @@ def get_balance(request_strategy: RequestContext = Depends(get_request_strategy)
                 db=Depends(get_db_session)):
     return make_market_request(endpoint="/market/balance",
                                request_strategy=request_strategy,
-                               db_session=db)
+                               db_session=db,
+                               user_email=user.email)
 
 
 @router.get("/session/bid/{market_session}")
 def get_session_bid(market_session: int,
                     request_strategy: RequestContext = Depends(get_request_strategy),
+                    user: User = Depends(get_current_user),
                     db=Depends(get_db_session)):
     endpoint = f"/market/bid/?market_session={market_session}"
     return make_market_request(endpoint=endpoint,
                                request_strategy=request_strategy,
-                               db_session=db)
+                               db_session=db,
+                               user_email=user.email)
 
 
 @router.post("/session/bid")
@@ -161,7 +167,7 @@ async def get_session_bid(background_tasks: BackgroundTasks,
                           user=Depends(get_current_user),
                           db=Depends(get_db_session)):
 
-    header = get_header(db=db)
+    header = get_header(db=db, user_email=user.email)
 
     try:
         response = request_strategy.make_request(endpoint="/market/wallet-address/",
@@ -263,9 +269,10 @@ def background_task_wrapper(from_identifier,
 
 @router.get("/session/transactions")
 def session_transactions(request_strategy: RequestContext = Depends(get_request_strategy),
+                         user=Depends(get_current_user),
                          db=Depends(get_db_session)):
     try:
-        header = get_header(db=db)
+        header = get_header(db=db, user_email=user.email)
         response = request_strategy.make_request(endpoint="/market/session-transactions/",
                                                  method="get",
                                                  headers=header)

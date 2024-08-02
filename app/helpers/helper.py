@@ -71,8 +71,9 @@ def transaction_to_dict(transaction):
     }
 
 
-def get_header(db: Session) -> dict:
-    token: Token = get_token(db)
+def get_header(db: Session, user_email: str) -> dict:
+    """Get authorization header with a user's token."""
+    token = get_token(db, user_email)
     if not token:
         return {"Content-Type": "application/json"}
     return {"Authorization": f"Bearer {token.token}", "Content-Type": "application/json"}

@@ -19,7 +19,7 @@ async def post_raw_data(payload: MeasurementsSchema,
                         request_strategy=Depends(get_request_strategy),
                         db=Depends(get_db_session),
                         user: User = Security(get_current_user)):
-    header = get_header(db=db)
+    header = get_header(db=db, user_email=user.email)
 
     try:
         response = request_strategy.make_request(endpoint="/data/raw-data/",
@@ -40,7 +40,7 @@ async def get_raw_data(start_date: str,
                        user: User = Security(get_current_user),
                        db=Depends(get_db_session)):
     try:
-        header = get_header(db=db)
+        header = get_header(db=db, user_email=user.email)
         endpoint = f"data/raw-data/?start_date={start_date}&end_date={end_date}&resource={resource_id}"
         response = request_strategy.make_request(endpoint=endpoint,
                                                  method="get",
@@ -59,7 +59,7 @@ async def get_forecast(start_date: str,
                        user: User = Security(get_current_user),
                        db=Depends(get_db_session)):
     try:
-        header = get_header(db=db)
+        header = get_header(db=db, user_email=user.email)
         response = request_strategy.make_request(endpoint=f"/data/market-forecasts/?"
                                                           f"start_date={start_date}&"
                                                           f"end_date={end_date}&"
@@ -80,7 +80,7 @@ async def get_forecast(start_date: str,
                        user: User = Security(get_current_user),
                        db=Depends(get_db_session)):
     try:
-        header = get_header(db=db)
+        header = get_header(db=db, user_email=user.email)
         rsp_forecasts = request_strategy.make_request(endpoint=f"/data/market-forecasts/?"
                                                                f"start_date={start_date}&"
                                                                f"end_date={end_date}&"

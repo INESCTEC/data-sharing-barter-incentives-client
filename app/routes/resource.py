@@ -18,7 +18,7 @@ def list_resource(request_strategy: RequestContext = Depends(get_request_strateg
                   db: Session = Depends(get_db_session),
                   user: User = Security(get_current_user)):
     try:
-        header = get_header(db=db)
+        header = get_header(db=db, user_email=user.email)
         response = request_strategy.make_request(endpoint='/user/resource/',
                                                  method='get',
                                                  headers=header)
@@ -36,7 +36,7 @@ def register_resource(payload: ResourceSchema,
                       user: User = Security(get_current_user),
                       db: Session = Depends(get_db_session)):
     try:
-        header = get_header(db=db)
+        header = get_header(db=db, user_email=user.email)
         response = request_strategy.make_request(endpoint='/user/resource/',
                                                  method='post',
                                                  headers=header,
@@ -55,7 +55,7 @@ def patch_resource(payload: ResourceSchema,
                    user: User = Security(get_current_user),
                    db: Session = Depends(get_db_session)):
     try:
-        header = get_header(db=db)
+        header = get_header(db=db, user_email=user.email)
         response = request_strategy.make_request(endpoint=f'/user/resource/{resource_id}',
                                                  method='patch',
                                                  headers=header,
@@ -75,7 +75,7 @@ def delete_resource(resource_id: UUID,
                     user: User = Security(get_current_user),
                     db: Session = Depends(get_db_session)):
     try:
-        header = get_header(db=db)
+        header = get_header(db=db, user_email=user.email)
         response = request_strategy.make_request(endpoint=f'/user/resource/{resource_id}',
                                                  method='delete',
                                                  headers=header)
