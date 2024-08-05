@@ -11,7 +11,7 @@ from app.dependencies import get_db_session, get_request_strategy, get_payload_f
 from app.helpers.helper import get_header
 from app.models.models import User
 from app.routes.wallet import payment_processor
-from app.schemas.schemas import UserLoginSchema, UserRegistrationSchema, UserSocialLoginSchema
+from app.schemas.schemas import UserLoginSchema, UserRegistrationSchema
 from app.schemas.user.schema import (LoginResponseModel, RegisterResponseModel, UserDetailResponseModel,
                                      UserDetailUpdateModel)
 
@@ -23,6 +23,7 @@ async def login(credentials: UserLoginSchema,
                 background_tasks: BackgroundTasks,
                 request_strategy: RequestContext = Depends(get_request_strategy),
                 db: Session = Depends(get_db_session)):
+
     response = request_strategy.make_request(endpoint="/token",
                                              method="post",
                                              data=credentials.model_dump())
@@ -50,7 +51,8 @@ async def login(credentials: UserLoginSchema,
 async def get_user_details(user=Depends(get_current_user),
                            request_strategy: RequestContext = Depends(get_request_strategy),
                            db_session: Session = Depends(get_db_session)):
-    header = get_header(db=db_session)
+
+    header = get_header(db=db_session, user_email=user.email)
 
     try:
         endpoint = '/user/list'
@@ -70,7 +72,7 @@ async def patch_user_details(update_data: UserDetailUpdateModel,
                              user=Depends(get_current_user),
                              request_strategy: RequestContext = Depends(get_request_strategy),
                              db_session: Session = Depends(get_db_session),):
-    header = get_header(db=db_session)
+    header = get_header(db=db_session, user_email=user.email)
     user_data = update_data.model_dump(exclude_unset=True)
     try:
         endpoint = '/user/list'

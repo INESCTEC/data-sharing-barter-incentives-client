@@ -82,7 +82,8 @@ class BidSchema(BaseModel):
             values['max_payment'] = payment_processor.unit_conversion(
                 value=float(values['max_payment']),
                 unit=payment_processor.BASE_UNIT,
-                target_unit=payment_processor.TRANSACTION_UNIT
+                target_unit=payment_processor.TRANSACTION_UNIT,
+                conversion_type=ConversionType.BASE_TO_TRANSACTION
             )
         return values
 
@@ -92,7 +93,8 @@ class BidSchema(BaseModel):
             values['bid_price'] = payment_processor.unit_conversion(
                 value=float(values['bid_price']),
                 unit=payment_processor.BASE_UNIT,
-                target_unit=payment_processor.TRANSACTION_UNIT
+                target_unit=payment_processor.TRANSACTION_UNIT,
+                conversion_type=ConversionType.BASE_TO_TRANSACTION
             )
         return values
 
