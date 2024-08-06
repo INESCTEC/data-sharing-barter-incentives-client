@@ -26,49 +26,45 @@ git clone https://github.com/CPES-Power-and-Energy-Systems/predico-data-sharing-
 Create a `.env` file in the root directory of the project with the following content:
 
 ```shell
-# General Settings 
-GITLAB_TOKEN=glpat-3aCP7Xzqg_FTAoRifcuG 
-BASE_URL=http://localhost:8000 
-PREDICO_BASE_URL=http://predico01.inesctec.pt 
-USE_DATASPACE=False 
-REFRESH_TOKEN_EXPIRE_DAYS=7 
-PAYMENT_PROCESSOR_TYPE=ERC20 
+GITLAB_TOKEN=
+BASE_URL=http://localhost:8000
+PREDICO_BASE_URL=http://predico01.inesctec.pt
+USE_DATASPACE=False
+REFRESH_TOKEN_EXPIRE_DAYS=7
+PAYMENT_PROCESSOR_TYPE=ERC20 # ERC20,IOTA,FIAT
 
-# Database Settings 
-POSTGRES_NAME=predico 
-POSTGRES_USER=predico 
-POSTGRES_PASSWORD=predico 
-POSTGRES_HOST=predico-client_postgresql 
+# Database Settings
+POSTGRES_NAME=predico
+POSTGRES_USER=predico
+POSTGRES_PASSWORD=predico
+POSTGRES_HOST=predico-client_postgresql
 
-# Client Connector (My own Connector) 
+# Client Connector (My own Connector)
+MY_CONNECTOR_ACCESS_URL=https://connector-02.enershare.inesctec.pt
+MY_CONNECTOR_ID=urn:ids:enershare:connectors:connector-02
+MY_CONNECTOR_AGENT_ID=urn:ids:enershare:participants:VascoGuedes
+MY_CONNECTOR_API_KEY=
+API_VERSION=1.0.0
 
-MY_CONNECTOR_ACCESS_URL= 
-MY_CONNECTOR_ID= 
-MY_CONNECTOR_AGENT_ID= 
-MY_CONNECTOR_API_KEY= 
-API_VERSION=1.0.0 
+# Metadata Broker
+METADATA_BROKER=https://broker.enershare.dataspac.es/
 
-# Metadata Broker 
+# External Connector
+EXTERNAL_ACCESS_URL_1=https://connector-01.enershare.inesctec.pt/router
+EXTERNAL_CONNECTOR_ID_1=urn:ids:enershare:connectors:connector-01
 
-METADATA_BROKER=https://broker.enershare.dataspac.es/ 
+EXTERNAL_ACCESS_URL=https://connector-01.enershare.inesctec.pt/router
+EXTERNAL_CONNECTOR_ID=urn:ids:enershare:connectors:connector-01:Agent
+EXTERNAL_AGENT_ID=urn:ids:enershare:participants:VascoGuedes
 
- # External Connector 
+# Ethereum credentials
+ETH_PUBLIC_KEY=
+ETH_PRIVATE_KEY=
 
-EXTERNAL_ACCESS_URL_1=https://connector-01.enershare.inesctec.pt/router 
-EXTERNAL_CONNECTOR_ID_1=urn:ids:enershare:connectors:connector-01 
-EXTERNAL_ACCESS_URL=https://connector-01.enershare.inesctec.pt/router 
-EXTERNAL_CONNECTOR_ID=urn:ids:enershare:connectors:connector-01:Agent 
-EXTERNAL_AGENT_ID=urn:ids:enershare:participants:VascoGuedes 
-
-# Ethereum credentials 
-
-ETH_PUBLIC_KEY= 
-ETH_PRIVATE_KEY= 
- 
-# Ethereum Payment Gateway 
-
-CONTRACT_ADDRESS=0xb6bf9f117f76bbbf20a5ff942ba8bd48c3acee89 
-WEB3_PROVIDER_URL=https://sepolia.infura.io/v3/cf175d91d8c7403fa135f523098f85f5 
+# Ethereum Payment Gateway
+CONTRACT_ADDRESS=0xb6bf9f117f76bbbf20a5ff942ba8bd48c3acee89
+WEB3_PROVIDER_URL=https://sepolia.infura.io/v3/cf175d91d8c7403fa135f523098f85f5
+ETHERSCAN_API_KEY=
 ```
 
 ## Build docker image
