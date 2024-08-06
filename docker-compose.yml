@@ -5,7 +5,7 @@ services:
     build:
       context: .
       args:
-      - GITLAB_TOKEN
+        GITLAB_TOKEN: ${GITLAB_TOKEN}
     container_name: predico-rest-client-python
     env_file:
       - .env
@@ -23,6 +23,8 @@ services:
       - .env
     volumes:
       - postgresql-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
 
 volumes:
   storage:

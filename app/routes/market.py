@@ -4,6 +4,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, status as http_status
 from fastapi.responses import JSONResponse
 from loguru import logger
+from payment.AbstractPayment import ConversionType
 from payment.PaymentGateway.IOTAPayment.IOTAPayment import IOTAPaymentController
 
 from app.apis.RequestStrategy import RequestContext
@@ -17,6 +18,7 @@ from app.schemas.market.schema import (MarketWalletResponseModel,
                                        UserMarketBalanceSessionResponseSchema,
                                        UserMarketBalanceResponseSchema)
 from app.schemas.schemas import BidSchema
+from app.helpers.helper import convert_to_transaction_unit
 
 router = APIRouter()
 retries = 3
@@ -93,7 +95,6 @@ def get_market_address(request_strategy: RequestContext = Depends(get_request_st
 
 @router.get("/unit")
 def get_unit(user=Depends(get_current_user)):
-
     response_content = {
         "base_unit": payment_processor.BASE_UNIT,
         "transaction_unit": payment_processor.TRANSACTION_UNIT,
@@ -166,7 +167,6 @@ async def get_session_bid(background_tasks: BackgroundTasks,
                           request_strategy: RequestContext = Depends(get_request_strategy),
                           user=Depends(get_current_user),
                           db=Depends(get_db_session)):
-
     header = get_header(db=db, user_email=user.email)
 
     try:
@@ -190,7 +190,9 @@ async def get_session_bid(background_tasks: BackgroundTasks,
             balance = payment_processor.get_balance().balance
             user_address = payment_processor.get_account_data(identifier=user.email).address
 
-        if int(balance) >= payload.max_payment:
+        if int(balance) >= convert_to_transaction_unit(payment_processor=payment_processor,
+                                                       value=payload.max_payment):
+
             response = request_strategy.make_request(endpoint="/market/bid/",
                                                      method="post",
                                                      headers=header,
@@ -235,11 +237,17 @@ async def execute_transaction_and_update_bid(from_identifier,
                                              bid_id,
                                              header):
     try:
+        amount_in_transaction_unit = (
+            payment_processor.unit_conversion(value=value,
+                                              unit=payment_processor.BASE_UNIT,
+                                              target_unit=payment_processor.TRANSACTION_UNIT,
+                                              conversion_type=ConversionType.BASE_TO_TRANSACTION))
+
         transaction = await asyncio.to_thread(
             payment_processor.execute_transaction,
             from_identifier=from_identifier,
             to_identifier=to_identifier,
-            value=value
+            value=amount_in_transaction_unit
         )
         data = {"transaction_id": transaction.receipt}
 

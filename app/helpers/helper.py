@@ -6,10 +6,21 @@ import pandas as pd
 from payment.PaymentGateway.EthereumPayment.EthereumSmartContract import (SmartContractConfig,
                                                                           TokenABI)
 from payment.PaymentGateway.IOTAPayment.IOTAPayment import WalletConfig
+from payment.AbstractPayment import AbstractPayment, ConversionType
 from sqlalchemy.orm import Session
 
 from app.crud import get_token
 from app.models.models import Token
+
+
+def convert_to_transaction_unit(payment_processor: AbstractPayment, value: int) -> int:
+
+    return payment_processor.unit_conversion(
+        value=value,
+        unit=payment_processor.BASE_UNIT,
+        target_unit=payment_processor.TRANSACTION_UNIT,
+        conversion_type=ConversionType.BASE_TO_TRANSACTION
+    )
 
 
 def generate_data(csv_path: str):

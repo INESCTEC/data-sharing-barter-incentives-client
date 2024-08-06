@@ -1,12 +1,11 @@
 import uuid
-from datetime import datetime
 from enum import Enum
 from typing import List
 
-from pydantic import BaseModel, Field, EmailStr, field_validator, model_validator
-from app.dependencies import payment_processor
 from payment.AbstractPayment import ConversionType
-from pydantic import UUID4
+from pydantic import BaseModel, Field, EmailStr, field_validator, model_validator
+
+from app.dependencies import payment_processor
 
 
 class TransactionSchema(BaseModel):
@@ -74,29 +73,39 @@ class BidSchema(BaseModel):
         else:
             raise ValueError("Invalid resource id")
 
-    @model_validator(mode='before')
-    def convert_max_payment(cls, values):
-        # Assuming payment_processor is available here as an imported module or object
-        # Make sure to import or define payment_processor before using it
-        if 'max_payment' in values:
-            values['max_payment'] = int(payment_processor.unit_conversion(
-                value=float(values['max_payment']),
-                unit=payment_processor.BASE_UNIT,
-                target_unit=payment_processor.TRANSACTION_UNIT,
-                conversion_type=ConversionType.BASE_TO_TRANSACTION
-            ))
-        return values
+    @field_validator("max_payment")
+    def validate_max_payment(cls, value, values):
+        """
+        Validate that max_payment is greater than bid_price.
+        """
+        bid_price = values.get('bid_price')
+        if bid_price is not None and value <= bid_price:
+            raise ValueError("max_payment must be greater than bid_price")
+        return value
 
-    @model_validator(mode='before')
-    def convert_bid_price(cls, values):
-        if 'bid_price' in values:
-            values['bid_price'] = int(payment_processor.unit_conversion(
-                value=float(values['bid_price']),
-                unit=payment_processor.BASE_UNIT,
-                target_unit=payment_processor.TRANSACTION_UNIT,
-                conversion_type=ConversionType.BASE_TO_TRANSACTION
-            ))
-        return values
+    # @model_validator(mode='before')
+    # def convert_max_payment(cls, values):
+    #     # Assuming payment_processor is available here as an imported module or object
+    #     # Make sure to import or define payment_processor before using it
+    #     if 'max_payment' in values:
+    #         values['max_payment'] = payment_processor.unit_conversion(
+    #             value=float(values['max_payment']),
+    #             unit=payment_processor.BASE_UNIT,
+    #             target_unit=payment_processor.TRANSACTION_UNIT,
+    #             conversion_type=ConversionType.BASE_TO_TRANSACTION
+    #         )
+    #     return values
+
+    # @model_validator(mode='before')
+    # def convert_bid_price(cls, values):
+    #     if 'bid_price' in values:
+    #         values['bid_price'] = payment_processor.unit_conversion(
+    #             value=float(values['bid_price']),
+    #             unit=payment_processor.BASE_UNIT,
+    #             target_unit=payment_processor.TRANSACTION_UNIT,
+    #             conversion_type=ConversionType.BASE_TO_TRANSACTION
+    #         )
+    #     return values
 
 
 class UserRole(str, Enum):

@@ -39,3 +39,4 @@ ETH_PRIVATE_KEY=
 # Ethereum Payment Gateway
 CONTRACT_ADDRESS=
 WEB3_PROVIDER_URL=https://sepolia.infura.io/v3/cf175d91d8c7403fa135f523098f85f5
+ETHERSCAN_API_KEY=

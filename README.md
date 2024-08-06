@@ -111,6 +111,7 @@ Can download through the releases page on the repository or alternatively throug
 [//]: # (The UI for the Predico Datamarket API can be found at: http://localhost:8000)
 [//]: # (https://github.com/jyotiv2023/admindash?ref=reactjsexample.com)
 
+![img.png](files/bid-diagram.pngam.png)
 # Steps
 
 The following steps are required to run the simulation tool and interact with the Predico Datamarket API.
