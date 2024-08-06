@@ -35,7 +35,7 @@ class WalletSchema(BaseModel):
 
 
 class TransferSchema(BaseModel):
-    amount: float
+    amount: int  # amount in BASE unit
     identifier: str  # The email address or public address of the recipient
 
     @model_validator(mode='before')
@@ -62,8 +62,8 @@ class UserWalletSchema(BaseModel):
 
 class BidSchema(BaseModel):
     market_session: int
-    bid_price: int
-    max_payment: int
+    bid_price: int  # Bid price in BASE unit
+    max_payment: int  # Max payment in BASE unit
     resource: str
     gain_func: str
 
@@ -79,21 +79,23 @@ class BidSchema(BaseModel):
         # Assuming payment_processor is available here as an imported module or object
         # Make sure to import or define payment_processor before using it
         if 'max_payment' in values:
-            values['max_payment'] = payment_processor.unit_conversion(
+            values['max_payment'] = int(payment_processor.unit_conversion(
                 value=float(values['max_payment']),
                 unit=payment_processor.BASE_UNIT,
-                target_unit=payment_processor.TRANSACTION_UNIT
-            )
+                target_unit=payment_processor.TRANSACTION_UNIT,
+                conversion_type=ConversionType.BASE_TO_TRANSACTION
+            ))
         return values
 
     @model_validator(mode='before')
     def convert_bid_price(cls, values):
         if 'bid_price' in values:
-            values['bid_price'] = payment_processor.unit_conversion(
+            values['bid_price'] = int(payment_processor.unit_conversion(
                 value=float(values['bid_price']),
                 unit=payment_processor.BASE_UNIT,
-                target_unit=payment_processor.TRANSACTION_UNIT
-            )
+                target_unit=payment_processor.TRANSACTION_UNIT,
+                conversion_type=ConversionType.BASE_TO_TRANSACTION
+            ))
         return values
 
 
