@@ -4,6 +4,7 @@ from typing import List
 
 from payment.AbstractPayment import ConversionType
 from pydantic import BaseModel, Field, EmailStr, field_validator, model_validator
+from pydantic_core.core_schema import FieldValidationInfo
 
 from app.dependencies import payment_processor
 
@@ -61,8 +62,8 @@ class UserWalletSchema(BaseModel):
 
 class BidSchema(BaseModel):
     market_session: int
-    bid_price: int  # Bid price in BASE unit
-    max_payment: int  # Max payment in BASE unit
+    bid_price: float  # Bid price in BASE unit
+    max_payment: float  # Max payment in BASE unit
     resource: str
     gain_func: str
 
@@ -74,12 +75,12 @@ class BidSchema(BaseModel):
             raise ValueError("Invalid resource id")
 
     @field_validator("max_payment")
-    def validate_max_payment(cls, value, values):
+    def validate_max_payment(cls, value, info: FieldValidationInfo):
         """
         Validate that max_payment is greater than bid_price.
         """
-        bid_price = values.get('bid_price')
-        if bid_price is not None and value <= bid_price:
+        bid_price = info.data['bid_price']
+        if value <= bid_price:
             raise ValueError("max_payment must be greater than bid_price")
         return value
 
