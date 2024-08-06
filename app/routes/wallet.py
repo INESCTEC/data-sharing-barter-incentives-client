@@ -59,8 +59,12 @@ def get_transactions_by(payload: Dict[str, Any],
 
 @router.get("/transactions", response_model=TransactionHistorySchema)
 def get_transactions(user: User = Security(get_current_user)):
+
     try:
-        identifier = payment_processor.get_account_data(user.email).address
+        if isinstance(payment_processor, IOTAPaymentController):
+            identifier = user.email
+        else:
+            identifier = payment_processor.get_account_data(user.email).address
         transactions = payment_processor.get_transaction_history(identifier=identifier)
         for transaction in transactions.transactions:
             transaction.value = payment_processor.unit_conversion(

@@ -23,7 +23,8 @@ db_password = os.getenv("POSTGRES_PASSWORD", "predico")
 database_host = os.getenv("POSTGRES_HOST", "localhost")
 database_name = os.getenv("POSTGRES_DB", "predico")
 
-SQLALCHEMY_DATABASE_URL = f"postgresql://{db_username}:{db_password}@{database_host}:5555/{database_name}"
+# SQLALCHEMY_DATABASE_URL = f"postgresql://{db_username}:{db_password}@{database_host}:5555/{database_name}"
+SQLALCHEMY_DATABASE_URL = f"postgresql://{db_username}:{db_password}@{database_host}/{database_name}"
 engine = create_engine(SQLALCHEMY_DATABASE_URL, pool_size=20, max_overflow=40, pool_recycle=3600)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
