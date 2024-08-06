@@ -124,5 +124,3 @@ https://documenter.getpostman.com/view/391645/2s9YJZ5Qc7
 7. Step 7: <strong>[MARKET]</strong> - Get list of sessions
 8. Step 8: <strong>[MARKET]</strong> - Bid in an open session
 9. Step 9: <strong>[MARKET]</strong> - Get market bid
-
-![img.png](static/images/barter-ui/dashboard2.pngbarter-ui/dashboard2.png)
