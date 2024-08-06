@@ -95,9 +95,9 @@ The documentation for the Predico Datamarket API can be found at: http://localho
 
 ### Barter Desktop App 
 
-|        ![Login](static/images/barter-ui/login.png)        |                                      ![Dashboard](static/images/barter-ui/dashboard.png)                                     |
-|:---------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------:|
-| **Login**<br>Entrypoint to the Barter Client Application. | **Dashboard**<br>Overview of account activities, market sessions, and available resources|
+|        ![Login](static/images/barter-ui/login.png)        |                   ![Dashboard](static/images/barter-ui/dashboard2.png)                    |
+|:---------------------------------------------------------:|:-----------------------------------------------------------------------------------------:|
+| **Login**<br>Entrypoint to the Barter Client Application. | **Dashboard**<br>Overview of account activities, market sessions, and available resources |
 
 
 #### Download application
@@ -111,7 +111,6 @@ Can download through the releases page on the repository or alternatively throug
 [//]: # (The UI for the Predico Datamarket API can be found at: http://localhost:8000)
 [//]: # (https://github.com/jyotiv2023/admindash?ref=reactjsexample.com)
 
-![img.png](files/bid-diagram.pngam.png)
 # Steps
 
 The following steps are required to run the simulation tool and interact with the Predico Datamarket API.
@@ -130,3 +129,4 @@ https://documenter.getpostman.com/view/391645/2s9YJZ5Qc7
 8. Step 8: <strong>[MARKET]</strong> - Bid in an open session
 9. Step 9: <strong>[MARKET]</strong> - Get market bid
 
+![img.png](static/images/barter-ui/dashboard2.pngbarter-ui/dashboard2.png)
