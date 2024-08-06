@@ -89,7 +89,7 @@ $ docker-compose up
 
 ## Documentation
 
-The documentation for the Predico Datamarket API can be found at: http://localhost:8000/docs
+The documentation for the Predico Datamarket API can be found at: http://localhost:8000/swagger
 
 ## UI
 
