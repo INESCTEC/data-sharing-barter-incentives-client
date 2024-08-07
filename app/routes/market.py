@@ -237,7 +237,7 @@ async def execute_transaction_and_update_bid(from_identifier,
                                              bid_id,
                                              header):
     try:
-        amount_in_transaction_unit = (
+        amount_in_transaction_unit = int(
             payment_processor.unit_conversion(value=value,
                                               unit=payment_processor.BASE_UNIT,
                                               target_unit=payment_processor.TRANSACTION_UNIT,

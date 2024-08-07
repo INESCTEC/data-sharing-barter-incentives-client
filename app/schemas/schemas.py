@@ -80,8 +80,8 @@ class BidSchema(BaseModel):
         Validate that max_payment is greater than bid_price.
         """
         bid_price = info.data['bid_price']
-        if value <= bid_price:
-            raise ValueError("max_payment must be greater than bid_price")
+        if value < bid_price:
+            raise ValueError("max_payment must be greater or equal to the bid_price")
         return value
 
     # @model_validator(mode='before')
