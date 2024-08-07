@@ -55,6 +55,11 @@ class UserLoginSchema(BaseModel):
     password: str  # Be cautious while handling passwords
 
 
+class UserSocialLoginSchema(BaseModel):
+    token: str
+    provider: str
+
+
 class UserWalletSchema(BaseModel):
     email: EmailStr
     password: str  # Be cautious while handling passwords
