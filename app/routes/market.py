@@ -108,6 +108,7 @@ def get_unit(user=Depends(get_current_user)):
 
 @router.get("/session", response_model=MarketSessionsResponse)
 def get_session(status: Optional[MarketSessionStatus] = "open",
+                latest_only: Optional[bool] = False,
                 request_strategy: RequestContext = Depends(get_request_strategy),
                 user=Depends(get_current_user),
                 db=Depends(get_db_session)):
@@ -115,6 +116,10 @@ def get_session(status: Optional[MarketSessionStatus] = "open",
         endpoint = "/market/session/"
         if status:
             endpoint += f"?market_session_status={status}"
+
+        if latest_only:
+            endpoint += "&latest_only=true"
+
         header = get_header(db=db, user_email=user.email)
         response = request_strategy.make_request(endpoint=endpoint,
                                                  method="get",
@@ -237,7 +242,7 @@ async def execute_transaction_and_update_bid(from_identifier,
                                              bid_id,
                                              header):
     try:
-        amount_in_transaction_unit = (
+        amount_in_transaction_unit = int(
             payment_processor.unit_conversion(value=value,
                                               unit=payment_processor.BASE_UNIT,
                                               target_unit=payment_processor.TRANSACTION_UNIT,

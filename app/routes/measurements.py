@@ -41,7 +41,7 @@ async def get_raw_data(start_date: str,
                        db=Depends(get_db_session)):
     try:
         header = get_header(db=db, user_email=user.email)
-        endpoint = f"data/raw-data/?start_date={start_date}&end_date={end_date}&resource={resource_id}"
+        endpoint = f"/data/raw-data/?start_date={start_date}&end_date={end_date}&resource={resource_id}"
         response = request_strategy.make_request(endpoint=endpoint,
                                                  method="get",
                                                  headers=header)
