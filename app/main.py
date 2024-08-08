@@ -1,8 +1,14 @@
 import os
 
 from fastapi import FastAPI
+from fastapi import Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.responses import PlainTextResponse
 from loguru import logger
+from pydantic import ValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.dependencies import engine
 from app.models.models import Base
@@ -21,6 +27,26 @@ app = FastAPI(
     docs_url="/swagger",  # Change the default Swagger UI URL
     redoc_url="/redoc"  # Change the default ReDoc URL
 )
+
+# https://fastapi.tiangolo.com/tutorial/handling-errors/#override-request-validation-exceptions
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    errors = exc.errors()
+    formatted_errors = {}
+    for error in errors:
+        loc = error['loc'][-1]
+        formatted_errors[loc] = [error['msg']]
+
+    return JSONResponse(
+        status_code=400,
+        content={
+            "code": 400,
+            "data": [formatted_errors]
+        }
+    )
+
 
 # List of allowed origins (e.g., React app's URL)
 origins = [
@@ -53,6 +79,7 @@ Base.metadata.create_all(bind=engine)
 
 @app.get("/")
 def test() -> dict:
+
     return {"message": "Welcome to the PREDICO wallet client API. This API is part of the PREDICO project."
                        "With this API you can register users in the market, send measurements and place bids. "
                        "Please refer to the documentation for more information"}

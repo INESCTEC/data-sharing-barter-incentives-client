@@ -65,14 +65,7 @@ def get_transactions(user: User = Security(get_current_user)):
             identifier = user.email
         else:
             identifier = payment_processor.get_account_data(user.email).address
-        transactions = payment_processor.get_transaction_history(identifier=identifier)
-        for transaction in transactions.transactions:
-            transaction.value = payment_processor.unit_conversion(
-                value=float(transaction.value),
-                unit=payment_processor.TRANSACTION_UNIT,
-                target_unit=payment_processor.BASE_UNIT,
-                conversion_type=ConversionType.TRANSACTION_TO_BASE)
-        return transactions
+        return payment_processor.get_transaction_history(identifier=identifier)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
