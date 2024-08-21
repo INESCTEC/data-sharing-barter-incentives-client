@@ -1,8 +1,9 @@
 from uuid import uuid4
-from requests.exceptions import ConnectionError
+
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from fastapi.responses import JSONResponse
 from loguru import logger
+from requests.exceptions import ConnectionError
 from sqlalchemy.orm import Session
 
 from app.apis.RequestStrategy import RequestContext
@@ -12,9 +13,13 @@ from app.dependencies import get_db_session, get_request_strategy, get_payload_f
 from app.helpers.helper import get_header
 from app.models.models import User
 from app.routes.wallet import payment_processor
-from app.schemas.schemas import UserLoginSchema, UserRegistrationSchema, UserSocialLoginSchema
-from app.schemas.user.schema import (LoginResponseModel, RegisterResponseModel, UserDetailResponseModel,
-                                     UserDetailUpdateModel)
+from app.schemas.user.schema import (LoginResponseModel,
+                                     RegisterResponseModel,
+                                     UserDetailResponseModel,
+                                     UserDetailUpdateModel,
+                                     UserLoginSchema,
+                                     UserRegistrationSchema,
+                                     UserSocialLoginSchema)
 
 router = APIRouter()
 

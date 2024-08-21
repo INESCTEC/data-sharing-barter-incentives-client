@@ -9,6 +9,7 @@ from payment.PaymentGateway.IOTAPayment.IOTAPayment import IOTAPaymentController
 
 from app.apis.RequestStrategy import RequestContext
 from app.dependencies import get_db_session, get_request_strategy, get_current_user, payment_processor
+from app.helpers.helper import convert_to_transaction_unit
 from app.helpers.helper import get_header
 from app.models.models import User
 from app.schemas.market.schema import (MarketWalletResponseModel,
@@ -16,9 +17,8 @@ from app.schemas.market.schema import (MarketWalletResponseModel,
                                        MarketSessionsResponse,
                                        MarketSessionStatus,
                                        UserMarketBalanceSessionResponseSchema,
-                                       UserMarketBalanceResponseSchema)
-from app.schemas.schemas import BidSchema
-from app.helpers.helper import convert_to_transaction_unit
+                                       UserMarketBalanceResponseSchema,
+                                       BidSchema)
 
 router = APIRouter()
 retries = 3
@@ -148,6 +148,7 @@ def get_session_balance(by_resource: Optional[bool] = False,
 def get_balance(request_strategy: RequestContext = Depends(get_request_strategy),
                 user: User = Depends(get_current_user),
                 db=Depends(get_db_session)):
+
     return make_market_request(endpoint="/market/balance",
                                request_strategy=request_strategy,
                                db_session=db,

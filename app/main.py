@@ -1,14 +1,10 @@
 import os
 
-from fastapi import FastAPI
-from fastapi import Request
+from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.responses import PlainTextResponse
 from loguru import logger
-from pydantic import ValidationError
-from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.dependencies import engine
 from app.models.models import Base
@@ -32,18 +28,21 @@ app = FastAPI(
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request, exc):
-    errors = exc.errors()
-    formatted_errors = {}
-    for error in errors:
+async def validation_exception_handler(request: Request, exc):
+    errors = {}
+    for error in exc.errors():
         loc = error['loc'][-1]
-        formatted_errors[loc] = [error['msg']]
+        if loc not in errors:
+            errors[loc] = []
+        errors[loc].append(error['msg'])
 
     return JSONResponse(
         status_code=400,
         content={
             "code": 400,
-            "data": [formatted_errors]
+            "data": errors,
+            "message": "Validation error. Please re-check your request parameters or body fields "
+                       "and fix the errors mentioned in this response 'data' field."
         }
     )
 

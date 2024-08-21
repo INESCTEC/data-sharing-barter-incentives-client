@@ -15,8 +15,7 @@ from payment.exceptions.wallet_exceptions import WalletException
 
 from app.dependencies import get_current_user, payment_processor
 from app.models.models import User
-from app.schemas.schemas import TransferSchema
-from app.schemas.wallet.schema import FundResponseModel
+from app.schemas.wallet.schema import TransferSchema, FundResponseModel
 
 router = APIRouter()
 
