@@ -27,8 +27,7 @@ Create a `.env` file in the root directory of the project with the following con
 
 ```shell
 GITLAB_TOKEN=
-BASE_URL=http://localhost:8000
-PREDICO_BASE_URL=http://predico01.inesctec.pt
+PREDICO_BASE_URL=http://predico02.inesctec.pt:8000
 USE_DATASPACE=False
 REFRESH_TOKEN_EXPIRE_DAYS=7
 PAYMENT_PROCESSOR_TYPE=ERC20 # ERC20,IOTA,FIAT

@@ -12,7 +12,6 @@ from app.dependencies import authenticate_user, create_access_token, pwd_context
 from app.dependencies import get_db_session, get_request_strategy, get_payload_from_refresh_token, get_current_user
 from app.helpers.helper import get_header
 from app.models.models import User
-from app.routes.wallet import payment_processor
 from app.schemas.user.schema import (LoginResponseModel,
                                      RegisterResponseModel,
                                      UserDetailResponseModel,
@@ -20,7 +19,7 @@ from app.schemas.user.schema import (LoginResponseModel,
                                      UserLoginSchema,
                                      UserRegistrationSchema,
                                      UserSocialLoginSchema)
-
+from app.dependencies import get_payment_processor
 router = APIRouter()
 
 
@@ -34,7 +33,7 @@ async def login(credentials: UserLoginSchema,
                                              method="post",
                                              data=credentials.model_dump())
 
-    user = authenticate_user(credentials.email, credentials.password, db)
+    user = authenticate_user(str(credentials.email), credentials.password, db)
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect username or password")
     access_token = create_access_token(data={"sub": user.email})
@@ -87,6 +86,7 @@ async def login(credentials: UserSocialLoginSchema,
             db_session.add(new_user)
             db_session.commit()
 
+            payment_processor = get_payment_processor()
             payment_processor.create_account(identifier=credentials['email'])
 
         add_token(db=db_session, user_email=user_email, token=data['access'])
@@ -179,16 +179,17 @@ def register_user(credentials: UserRegistrationSchema,
         # noinspection PyTypeChecker
         user = db.query(User).filter(User.email == credentials.email).first()
         if not user:
-            # If user does not exist, proceed with registration logic
+            # If a user does not exist, proceed with registration logic
             # Here you would hash the password, create a new User object, add to the session, and commit.
             # For example:
             hashed_password = pwd_context.hash(credentials.password)
-            new_user = User(email=credentials.email, password_hash=hashed_password)
+            new_user = User(email=str(credentials.email), password_hash=hashed_password)
             db.add(new_user)
             db.commit()
 
         try:
-            payment_processor.create_account(identifier=credentials.email)
+            payment_processor = get_payment_processor()
+            payment_processor.create_account(identifier=str(credentials.email))
         except Exception as e:
             status_code = status.HTTP_400_BAD_REQUEST
             content = {"error": str(e)}

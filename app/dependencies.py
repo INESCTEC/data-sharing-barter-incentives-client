@@ -1,6 +1,6 @@
 import os
 from datetime import datetime, timedelta
-
+from typing import Any
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
@@ -8,12 +8,11 @@ from passlib.context import CryptContext
 from payment.AbstractPayment import AbstractPayment
 from payment.PaymentGateway.EthereumPayment.EthereumSmartContract import (EthereumSmartContract,
                                                                           ethereum_provider)
-from payment.PaymentGateway.IOTAPayment.IOTAPayment import IOTAPaymentController
-from payment.database.PaymentDatabase import PaymentDatabase as BlockchainDatabase
+from typing import Optional
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import sessionmaker
-
+from pathlib import Path
 from app.apis.RequestStrategy import RequestContext, RequestsStrategy, DataspaceStrategy
 from app.helpers.helper import wallet_config, smart_contract_config
 from app.models.models import User
@@ -40,7 +39,7 @@ def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def authenticate_user(email: str, password: str, db: Session) -> User:
+def authenticate_user(email: str, password: str, db: Session) -> User | None:
     # noinspection PyTypeChecker
     user = db.query(User).filter(User.email == email).first()
     if not user or not verify_password(password, user.password_hash):
@@ -89,16 +88,11 @@ def get_db_session():
         db.close()
 
 
-def get_payment_processor() -> AbstractPayment:
-    payment_type = os.getenv("PAYMENT_PROCESSOR_TYPE", "IOTA")  # Default to IOTA if not specified
+def get_payment_processor(current_user: Optional[User] = None) -> AbstractPayment:
 
+    payment_type = os.getenv("PAYMENT_PROCESSOR_TYPE", "ERC20")  # Default to IOTA if not specified
     try:
-        if payment_type == "IOTA":
-            payment_controller = IOTAPaymentController(config=wallet_config())
-            payment_controller.initialize_payment_method()
-            return payment_controller
-
-        elif payment_type == "ERC20":
+        if payment_type == "ERC20":
             config = smart_contract_config()
             provider_url = os.getenv('WEB3_PROVIDER_URL')
             if not provider_url:
@@ -106,9 +100,20 @@ def get_payment_processor() -> AbstractPayment:
             w3 = ethereum_provider(url=provider_url)
             eth_private_key = os.getenv('ETH_PRIVATE_KEY', None)
 
-            return EthereumSmartContract(config=config,
-                                         private_key=eth_private_key,
-                                         web3_instance=w3)
+            if not eth_private_key and current_user is not None:
+                # Default key storage path (you can customize this)
+                key_path = Path(os.path.join(current_user.email))  # Replace with your actual directory
+
+                if key_path.exists():
+                    eth_private_key = key_path.read_text().strip()
+                else:
+                    raise FileNotFoundError(f"Private key not found for user {current_user.email}")
+
+            return EthereumSmartContract(
+                config=config,
+                private_key=eth_private_key,
+                web3_instance=w3
+            )
 
         elif payment_type == "FIAT":
             raise NotImplementedError("Fiat payment processor not yet supported")
