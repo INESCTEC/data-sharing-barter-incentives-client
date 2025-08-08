@@ -50,11 +50,13 @@ services:
     volumes:
       - postgresql-data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5432"
 
 volumes:
   storage:
   postgresql-data:
   letsencrypt_data:
+    external: true
   certbot_www:
+    external: true
 
