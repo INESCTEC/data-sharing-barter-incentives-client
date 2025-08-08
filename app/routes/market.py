@@ -8,7 +8,7 @@ from payment.AbstractPayment import ConversionType
 from payment.PaymentGateway.IOTAPayment.IOTAPayment import IOTAPaymentController
 
 from app.apis.RequestStrategy import RequestContext
-from app.dependencies import get_db_session, get_request_strategy, get_current_user, payment_processor
+from app.dependencies import get_db_session, get_request_strategy, get_current_user, get_payment_processor
 from app.helpers.helper import convert_to_transaction_unit
 from app.helpers.helper import get_header
 from app.models.models import User
@@ -59,7 +59,8 @@ def post_user_address(request_strategy: RequestContext = Depends(get_request_str
                       user=Depends(get_current_user),
                       db=Depends(get_db_session)):
     try:
-        payment_processor.initialize_payment_method()
+        payment_processor = get_payment_processor(current_user=user)
+
         address = payment_processor.get_account_data(identifier=user.email).address
         header = get_header(db=db, user_email=user.email)
         response = request_strategy.make_request(endpoint="/user/wallet-address/",
@@ -95,6 +96,7 @@ def get_market_address(request_strategy: RequestContext = Depends(get_request_st
 
 @router.get("/unit")
 def get_unit(user=Depends(get_current_user)):
+    payment_processor = get_payment_processor(current_user=user)
     response_content = {
         "base_unit": payment_processor.BASE_UNIT,
         "transaction_unit": payment_processor.TRANSACTION_UNIT,
@@ -148,7 +150,6 @@ def get_session_balance(by_resource: Optional[bool] = False,
 def get_balance(request_strategy: RequestContext = Depends(get_request_strategy),
                 user: User = Depends(get_current_user),
                 db=Depends(get_db_session)):
-
     return make_market_request(endpoint="/market/balance",
                                request_strategy=request_strategy,
                                db_session=db,
@@ -187,15 +188,14 @@ async def get_session_bid(background_tasks: BackgroundTasks,
 
         market_wallet_address = response.json()['data']['wallet_address']
 
-        # Check if user has sufficient balance particular parameter to IOTA
-        # todo fix this to be more generic
-        if isinstance(payment_processor, IOTAPaymentController):
-            balance = payment_processor.get_balance(identifier=user.email).balance
-            user_address = user.email
-        else:
-            balance = payment_processor.get_balance().balance
-            user_address = payment_processor.get_account_data(identifier=user.email).address
+        payment_processor = get_payment_processor(current_user=user)
 
+        balance = payment_processor.get_balance().balance
+        user_address = payment_processor.get_account_data(identifier=user.email).address
+        logger.info("User is about to post a bid")
+        logger.info(f"User address: {user_address}")
+        logger.info(f"Balance: {balance}")
+        # Convert balance to transaction unit
         if int(balance) >= convert_to_transaction_unit(payment_processor=payment_processor,
                                                        value=payload.max_payment):
 
@@ -214,6 +214,7 @@ async def get_session_bid(background_tasks: BackgroundTasks,
             # Add background task for transaction execution and bid update
             background_tasks.add_task(
                 background_task_wrapper,
+                payment_processor,
                 user_address,
                 market_wallet_address,
                 payload.max_payment,
@@ -236,12 +237,14 @@ async def get_session_bid(background_tasks: BackgroundTasks,
         raise HTTPException(status_code=400, detail=str(e))
 
 
-async def execute_transaction_and_update_bid(from_identifier,
-                                             to_identifier,
-                                             value,
-                                             request_strategy,
-                                             bid_id,
-                                             header):
+async def execute_transaction_and_update_bid(
+        payment_processor,
+        from_identifier,
+        to_identifier,
+        value,
+        request_strategy,
+        bid_id,
+        header):
     try:
         amount_in_transaction_unit = int(
             payment_processor.unit_conversion(value=value,
@@ -266,19 +269,25 @@ async def execute_transaction_and_update_bid(from_identifier,
         logger.error(f"Error executing transaction: {str(e)}")
 
 
-def background_task_wrapper(from_identifier,
-                            to_identifier,
-                            value,
-                            request_strategy,
-                            bid_id,
-                            header):
+def background_task_wrapper(
+        payment_processor,
+        from_identifier,
+        to_identifier,
+        value,
+        request_strategy,
+        bid_id,
+        header):
     asyncio.run(
-        execute_transaction_and_update_bid(from_identifier,
-                                           to_identifier,
-                                           value,
-                                           request_strategy,
-                                           bid_id,
-                                           header))
+        execute_transaction_and_update_bid(
+            payment_processor,
+            from_identifier,
+            to_identifier,
+            value,
+            request_strategy,
+            bid_id,
+            header
+        )
+    )
 
 
 @router.get("/session/transactions")
