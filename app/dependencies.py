@@ -102,7 +102,7 @@ def get_payment_processor(current_user: Optional[User] = None) -> AbstractPaymen
 
             if not eth_private_key and current_user is not None:
                 # Default key storage path (you can customize this)
-                key_path = Path(os.path.join(current_user.email))  # Replace with your actual directory
+                key_path = Path(os.path.join("keys", current_user.email))
 
                 if key_path.exists():
                     eth_private_key = key_path.read_text().strip()

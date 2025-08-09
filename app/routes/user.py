@@ -1,3 +1,5 @@
+import os
+import shutil
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
@@ -10,6 +12,7 @@ from app.apis.RequestStrategy import RequestContext
 from app.crud import add_token, cleanup_expired_tokens
 from app.dependencies import authenticate_user, create_access_token, pwd_context, create_refresh_token
 from app.dependencies import get_db_session, get_request_strategy, get_payload_from_refresh_token, get_current_user
+from app.dependencies import get_payment_processor
 from app.helpers.helper import get_header
 from app.models.models import User
 from app.schemas.user.schema import (LoginResponseModel,
@@ -19,7 +22,7 @@ from app.schemas.user.schema import (LoginResponseModel,
                                      UserLoginSchema,
                                      UserRegistrationSchema,
                                      UserSocialLoginSchema)
-from app.dependencies import get_payment_processor
+
 router = APIRouter()
 
 
@@ -80,7 +83,7 @@ async def login(credentials: UserSocialLoginSchema,
                 'email': user_email,
                 'password': uuid4().hex
             }
-            # If user does not exist, proceed with registration logic
+            # If a user does not exist, proceed with registration logic
             hashed_password = pwd_context.hash(credentials['password'])
             new_user = User(email=credentials['email'], password_hash=hashed_password)
             db_session.add(new_user)
@@ -190,6 +193,13 @@ def register_user(credentials: UserRegistrationSchema,
         try:
             payment_processor = get_payment_processor()
             payment_processor.create_account(identifier=str(credentials.email))
+
+            src_file = os.path.join(".", f"{credentials.email}")  # file in the current directory
+            dest_dir = os.path.join("keys")  # keys directory
+            os.makedirs(dest_dir, exist_ok=True)  # ensure keys/ exists
+
+            shutil.move(src_file, os.path.join(dest_dir, f"{credentials.email}"))
+
         except Exception as e:
             status_code = status.HTTP_400_BAD_REQUEST
             content = {"error": str(e)}

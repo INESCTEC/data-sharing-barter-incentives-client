@@ -12,6 +12,7 @@ services:
       - .env
     volumes:
       - storage:/app/files
+      - keys:/app/keys
     expose:
       - "8000"
 
@@ -54,6 +55,7 @@ services:
 
 volumes:
   storage:
+  keys:
   postgresql-data:
   letsencrypt_data:
     external: true
