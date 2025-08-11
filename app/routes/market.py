@@ -257,7 +257,7 @@ async def execute_transaction_and_update_bid(
             to_identifier=to_identifier,
             value=amount_in_transaction_unit
         )
-        data = {"transaction_id": transaction.receipt}
+        data = {"tangle_msg_id": transaction.receipt}
 
         await asyncio.to_thread(request_strategy.make_request,
                                 endpoint=f'/market/bid/{bid_id}',
