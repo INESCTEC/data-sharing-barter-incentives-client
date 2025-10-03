@@ -73,6 +73,33 @@ def post_user_address(request_strategy: RequestContext = Depends(get_request_str
                         status_code=response.status_code,
                         media_type="application/json")
 
+@router.put("/wallet/user_wallet_address",
+            response_description="Update the user wallet address in the market",
+            response_model=UserMarketWalletResponseModel)
+def put_user_address(request_strategy: RequestContext = Depends(get_request_strategy),
+                     user=Depends(get_current_user),
+                     db=Depends(get_db_session)):
+    try:
+        payment_processor = get_payment_processor(current_user=user)
+        address = payment_processor.get_account_data(identifier=user.email).address
+        header = get_header(db=db, user_email=user.email)
+
+        response = request_strategy.make_request(
+            endpoint="/user/wallet-address/",
+            method="put",
+            data={"wallet_address": address},
+            headers=header
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    return JSONResponse(
+        content=response.json(),
+        status_code=response.status_code,
+        media_type="application/json"
+    )
+
 
 @router.get("/wallet/market_wallet_address",
             response_description="Get the market wallet address registered in the market",
@@ -257,7 +284,7 @@ async def execute_transaction_and_update_bid(
             to_identifier=to_identifier,
             value=amount_in_transaction_unit
         )
-        data = {"tangle_msg_id": transaction.receipt}
+        data = {"transaction_id": transaction.receipt}
 
         await asyncio.to_thread(request_strategy.make_request,
                                 endpoint=f'/market/bid/{bid_id}',
