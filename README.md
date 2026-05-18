@@ -14,7 +14,7 @@
 >
 > Please use that repository for current documentation and development.
 
-A Dockerized interface for the https://github.com/CPES-Power-and-Energy-Systems/data-sharing-barter-incentives-rest-api 
+A Dockerized interface for the https://github.com/INESCTEC/data-sharing-barter-incentives-rest-api 
 Datamarket Server API.
 
 The objective of this API software package is to provide an in-between assistance in the communication between the Datamarket client and the Datamarket Server API. 
@@ -31,7 +31,7 @@ The client wallet will still be located in the client's machine, but the client 
 You need first to get access to the PREDICO (Data Sharing / Barter Incentives) client repository and clone it to your local machine.
     
 ```shell
-git clone https://github.com/CPES-Power-and-Energy-Systems/predico-data-sharing-barter-client.git
+git clone https://github.com/INESCTEC/predico-data-sharing-barter-client.git
 ```
 
 ## Environment variables
