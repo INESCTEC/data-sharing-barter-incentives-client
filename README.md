@@ -1,4 +1,18 @@
-# PREDICO  (Data Sharing / Barter Incentives) client.
+# Archived: PREDICO  (Data Sharing / Barter Incentives) client.
+
+[![status: archived](https://img.shields.io/badge/status-archived-grey)](https://github.com/INESCTEC/predico-collabforecast)
+
+> [!WARNING]
+> **Archived legacy repository**
+>
+> This repository contains an earlier development/prototype stage of the Predico collaborative forecasting platform and is **no longer maintained**.
+>
+> It has been kept for **historical and traceability purposes only**.
+>
+> The current successor project is:
+> **https://github.com/INESCTEC/predico-collabforecast**
+>
+> Please use that repository for current documentation and development.
 
 A Dockerized interface for the https://github.com/CPES-Power-and-Energy-Systems/data-sharing-barter-incentives-rest-api 
 Datamarket Server API.
